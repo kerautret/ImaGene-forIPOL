@@ -45,7 +45,7 @@ static const int RESOLUTION=1200;
 static int samplingSizeMax = 20;
 
 
-void  plotDetailedStandardScale (uint idx, int dec, uint n,  const  MultiscaleProfile &MP, double alpha, fstream & fstrProfiles);
+
 Vector2i getPointFromFreemanChain(const FreemanChain &fc, uint pos);
 
 
@@ -102,9 +102,9 @@ main( int argc, char** argv )
   
   // def de bruit:
   args.addOption( "-meaningfulScales", "-meaningfulScales <min_size> <max_slope>: specifies parameters for defining meaningful scales: minimum size of the interval of scales and maximum slopes between consecutivesamples within.", "1", "-0.2" );  
-  args.addOption( "-standardScale", "-standardScale <n> <alpha>: choose the standard scale instead of noise level and specifies the parameters for defining the linear model used in the standard scale. [n] is the minimum number of samples to fit a linear model, 1-[alpha] is the proportion of accepted linear model of the test (99%, alpha=0.01, means that 99% of all linear model with a Gaussian noise are accepted).", "4", "0.01" );  
   
-  args.addOption( "-standardScaleMax", "-standardScaleMax <n> <alpha>: choose the standard scale instead of noise level and specifies the parameters for defining the linear model used in the standard scale. [n] is the minimum number of samples to fit a linear model, 1-[alpha] is the proportion of accepted linear model of the test (99%, alpha=0.01, means that 99% of all linear model with a Gaussian noise are accepted).", "4", "0.01" );  
+  
+
   
   args.addOption("-maxValidScale", "-maxValidScale <max Slope> show the noise defined as largest possible interval containing slope less than <maxSlope>.", "0.0"); 
   args.addOption("-maxMeaningfulScales" ,"-maxMeaningfulScales <minSize> <maxSlope> : return the meaningfulScale with longest maximal segments ","1", "-0.2" );
@@ -151,19 +151,9 @@ main( int argc, char** argv )
   
   uint mscales_min_size = args.getOption( "-meaningfulScales" )->getIntValue( 0 );
   double mscales_max_slope = args.getOption( "-meaningfulScales" )->getDoubleValue( 1 );
-  bool standard_scale = args.check( "-standardScale" );
-  bool standard_scaleMax = args.check( "-standardScaleMax" );
-  
-  uint n = args.getOption( "-standardScale" )->getIntValue( 0 );    
-  double alpha = args.getOption( "-standardScale" )->getDoubleValue( 1 );    
-  if(standard_scaleMax){
-    n = args.getOption( "-standardScaleMax" )->getIntValue( 0 );    
-    alpha = args.getOption( "-standardScaleMax" )->getDoubleValue( 1 );    
-  }
-  
   
 
-    
+  
 
   
   // -------------------------------------------------------------------------
@@ -296,9 +286,6 @@ main( int argc, char** argv )
     fstrProfiles.open("regProfil.txt", ios::out);
     
     
-    
-    plotDetailedStandardScale(index, 0, minSize, MP,alpha, fstrProfiles );
-    
 
   }  
   
@@ -338,10 +325,6 @@ main( int argc, char** argv )
     
     if(args.check("-meaningfulScales")){
       noiseLevel =  MP.noiseLevel(i, mscales_min_size, mscales_max_slope);
-    }else if(args.check("-standardScale")){
-      noiseLevel =  MP.detailedStandardScale(i, n, alpha );
-    }else if(args.check("-standardScaleMax")){
-      noiseLevel =  MP.detailedStandardScaleMax(i, n, alpha );
     }else if(args.check("-maxValidScale")){
       double maxSlope = args.getOption("-maxValidScale")->getDoubleValue(0);
       noiseLevel = MP.maximalValidScale(i, maxSlope);
@@ -396,27 +379,7 @@ main( int argc, char** argv )
       }
     }
 
-    for (FreemanChain::const_iterator it = fc.begin() ; it!=fc.end(); ++it){
-      Vector2i pt ((*it).x(), (*it).y());
-      uint indice = pt.y()*imageBruit.width+pt.x();
-      uint noiseLevel =0;
-      noiseLevel =  MP.detailedStandardScaleMax(i, n, alpha );
-      imageBruit.tabImageR[indice]+=(noiseLevel);
-      imageCompteur.tabImageR[indice]++;
-      imageBruit.tabImageG[indice]=0;
-      imageBruit.tabImageB[indice]=0;
-      if(imageBruit.tabImageR[indice]> maxBruit)
-	maxBruit=imageBruit.tabImageR[indice];
-      if(imageCompteur.tabImageR[indice]> maxBruitCpt)
-	maxBruitCpt=imageCompteur.tabImageR[indice];
-      
-      i++;
-    }
-    
-    imageBruit.maxValue=maxBruit;
-    imageCompteur.maxValue=maxBruitCpt;
-    exportPPM("resuBruit.ppm", imageBruit);
-    exportPPM("resuBruitCompteur.ppm", imageCompteur);
+   
       
   }
 
@@ -457,23 +420,6 @@ getPointFromFreemanChain(const FreemanChain &fc, uint pos){
 
 
 
-
-void 
-plotDetailedStandardScale (uint idx, int dec, uint n,  const  MultiscaleProfile &MP, double alpha, fstream &fstrProfiles) {
-  vector<double> x;
-  vector<double> y;
-  vector<uint> indiceScales;
-  MP.profileFromLinearReg(x, y, indiceScales, idx, n, alpha);
-  
-  
-  for(int i=0; i<x.size(); i++){
-    fstrProfiles << exp(x.at(i)) <<  " " <<  exp(y.at(i)) << endl;
-
-  }
-  cerr << "detailedStandardScaleMax=" << MP.detailedStandardScaleMax(idx, n, alpha) << endl;
-
-  
-}
 
 
 

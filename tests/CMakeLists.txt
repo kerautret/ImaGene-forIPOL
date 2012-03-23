@@ -24,7 +24,6 @@ set( TEST_EXEC_FILES
  	test_Reconstruction
 	test_K2Space 
 	test_Resolutions
-	test_Math
 	test_MSOnContours
 	test_Multiscale 
 	test_Multiscale_segment 

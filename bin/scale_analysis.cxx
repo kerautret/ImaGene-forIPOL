@@ -268,7 +268,7 @@ main( int argc, char** argv )
   args.addOption( "-multiresMedianPGMOnOriginalImage", "-multiresMedianPGMOnOriginalImage <filename.pgm>: computes the median filtering of the specified PGM image directed by the noise level of the contour.", "toto.pgm" );
  
   // Rajout BK ExpePAMI
-  args.addOption("-stdScale","-stdScale <n> <alpha> set the noise estimation defined by standard scale (maximal detailed scale) used only by -multiresMedianPGM and -multiresMedianPGMOnOriginalImage. [n] is the minimum number of samples to fit a linear model, 1-[alpha] is the proportion of accepted linear model of the test (99%, alpha=0.01, means that 99% of all linear model with a Gaussian noise are accepted). If <n> is positive, computes the MultiscaleProfile.detailedStandardScaleMax(n,...), otherwise computes MultiscaleProfile.detailedStandardScale(-n,...). ", "3", "0.1" );
+
   args.addOption("-setCstNoise","-setCstNoise <level> used to set a constant noise level used by -multiresMedianPGM", "1" );
   
 
@@ -560,51 +560,6 @@ main( int argc, char** argv )
       // to do : delete KnSpaces
     }
 
-
-  if ( args.check( "-smoothContour" ) )
-    {
-      cout << "# -smoothContour: displays a smoother version of the contour according to the noise level of each surfel." 
-	   << endl
-	   << "# idx sx sy noiselvl x y" << endl;
-      vector<double> x;
-      vector<double> y;
-      vector<double> sx;
-      vector<double> sy;
-      vector<uint> nl;
-      for ( FreemanChain::const_iterator it = c.begin();
-	    it != c.end();
-	    ++it )
-	{
-	  uint idx = it.getPosition();
-	  uint code = it.getCode();
-	  Vector2i xy( *it );
-	  int nlv = (int) MP.detailedStandardScaleMax( it.getPosition(), 
-						       3, 0.3 );
-	  if(nlv==0)
-	    nlv=1;
-	  x.push_back( (double) xy.x() );
-	  y.push_back( (double) xy.y() );
-	  nl.push_back( nlv );
-	}
-      vector<uint> nl_pointel;
-      for ( uint i = 0; i < x.size(); ++i )
-	nl_pointel.push_back( ( nl[ i ] + nl[ ( i + x.size() ) 
-					      % x.size() ] ) 
-			      );
-      uint m = *( max_element( nl_pointel.begin(), nl_pointel.end() ) );
-      vector<G> g_fcts( m+1 );
-      for ( uint i = 0; i <= m; ++i )
-	g_fcts[ i ].setSigma( (double) i + 0.0000001 );
-
-      convolveByGaussianKernels( sx, sy, x, y, nl_pointel, g_fcts );
-      for ( uint i = 0; i < x.size(); ++i )
-	cout << i << " " << sx[ i ] << " " << sy[ i ]
-	     << " " << nl[ i ] << " " << x[ i ] << " " << y[ i ] << endl;
-      
-
-	
-    }
-
   if ( args.check( "-gsmooth" ) )
     {
       double s = args.getOption( "-gsmooth" )->getDoubleValue( 0 );
@@ -798,15 +753,12 @@ multiresMedianPGMOnOriginalImage
 
   // Rajout BK Expe PAMI
   int maxScale = MP.all_stats.size();
-  bool stdScale = args.check("-stdScale");
+  
   bool cstNoise = args.check("-setCstNoise");
   int levelNoise;
   int minSize;
   double alpha;
-  if(stdScale){
-    minSize =  args.getOption("-stdScale")->getIntValue(0);
-    alpha = args.getOption("-stdScale")->getDoubleValue(1);
-  }
+  
 
   if(cstNoise){
     levelNoise = args.getOption("-setCstNoise")->getIntValue(0);
@@ -835,14 +787,6 @@ multiresMedianPGMOnOriginalImage
       // Rajout pour effectuer les tests dans PAMI:
       // Meaningfull scales par défaut, StdScale ou niveau constant.
       
-      if(stdScale){
-	if ( minSize > 0 )
-	  nlv = (int) MP.detailedStandardScaleMax( it.getPosition(), 
-						   minSize, alpha);
-	else
-	  nlv = (int) MP.detailedStandardScale( it.getPosition(), 
-						-minSize, alpha);
-      }
       if(cstNoise){
 	nlv= levelNoise;	
       }
@@ -921,16 +865,12 @@ multiresMedianPGM( const MultiscaleProfile & MP,
 
   // Rajout BK Expe PAMI
   int maxScale = MP.all_stats.size();
-  bool stdScale = args.check("-stdScale");
+  
   bool cstNoise = args.check("-setCstNoise");
   int levelNoise;
   int minSize;
   double alpha;
-  if(stdScale){
-    minSize =  args.getOption("-stdScale")->getIntValue(0);
-    alpha = args.getOption("-stdScale")->getDoubleValue(1);
-  }
-
+  
   if(cstNoise){
     levelNoise = args.getOption("-setCstNoise")->getIntValue(0);
   }
@@ -952,17 +892,6 @@ multiresMedianPGM( const MultiscaleProfile & MP,
 				 mscales_min_size, mscales_max_slope);
       
       
-      // Rajout pour effectuer les tests dans PAMI:
-      // Meaningfull scales par défaut, StdScale ou niveau constant.
-      
-      if(stdScale){
-	if ( minSize > 0 )
-	  nlv = (int) MP.detailedStandardScaleMax( it.getPosition(), 
-						   minSize, alpha);
-	else
-	  nlv = (int) MP.detailedStandardScale( it.getPosition(), 
-						   -minSize, alpha);
-      }
       if(cstNoise){
 	nlv= levelNoise;	
       }

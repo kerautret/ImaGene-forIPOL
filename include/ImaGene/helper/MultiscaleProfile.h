@@ -132,35 +132,6 @@ namespace ImaGene
 			  uint idx ) const;
 
 
-
-    /**
-     * Rajout BK 23/09/09
-     *
-     * Compute the profile from several linear regressions starting from
-     * maximal scales with [n] samples with the parameter [alpha]. When
-     * the first linear regression stop at scale K a second linear
-     * regression is applyed from the scale [K,K+n] with the same parameter.
-     *  
-     * 
-     * @param x (returns) the x-value of the profile (log(scale+1)).
-     * @param y (returns) the y-value of the profile (log(length of ms)).
-     * @param idx the index of the surfel.
-     * @param n the minimum number of samples (min is 3).
-     * @param alpha is the proportion of rejected linear model (the ones
-     * with big variance).
-     
-     */
-
-    void
-    profileFromLinearReg( std::vector<double> & x, 
-			  std::vector<double> & y,  
-			  std::vector<uint> & scales,
-			  uint idx,
-			  uint n, 
-			  double alpha) const;
-      
-
-
     /**
      * A meaningful scale is an interval of scales of length no
      * smaller than [min_width] and in which the profile has slopes
@@ -193,74 +164,7 @@ namespace ImaGene
 		     uint min_width = 1,
 		     double max_slope = -0.2 ) const;
 
-    /**
-     * The standard scale is the first scale starting from which the
-     * profile is straight until the maximum scale. The straightness is
-     * evaluated through a statistic test based on a simple linear
-     * regression model. It requires two parameters: [n] is the minimum
-     * number of samples to fit a linear model, 1-[alpha] is the
-     * proportion of accepted linear model of the test (99%, alpha=0.01,
-     * means that 99% of all linear model with a Gaussian noise are
-     * accepted).
-     *
-     * @param idx the surfel of interest.
-     * @param n the minimum number of samples (min is 3).
-     * @param alpha is the proportion of rejected linear model (the ones
-     * with big variance).
-     *
-     * @return the standard scale at point [idx].
-     */
-    uint standardScale( uint idx,
-			uint n = 4,
-			double alpha = 0.01 ) const;
 
-   /**
-     * The standard scale is the first scale starting from which the
-     * profile is straight until the maximum scale. The straightness is
-     * evaluated through a statistic test based on a simple linear
-     * regression model. It requires two parameters: [n] is the minimum
-     * number of samples to fit a linear model, 1-[alpha] is the
-     * proportion of accepted linear model of the test (99%, alpha=0.01,
-     * means that 99% of all linear model with a Gaussian noise are
-     * accepted).
-     *
-     * @param idx the surfel of interest.
-     * @param n the minimum number of samples (min is 3).
-     * @param alpha is the proportion of rejected linear model (the ones
-     * with big variance).
-     *
-     * @return the standard scale at point [idx].
-     */
-    uint detailedStandardScale( uint idx,
-				uint n = 4,
-				double alpha = 0.01 ) const;
-
-
-
-
-    /**
-     * The standard scale is the first scale starting from which the
-     * profile is straight until the maximum scale. The straightness is
-     * evaluated through a statistic test based on a simple linear
-     * regression model. It requires two parameters: [n] is the minimum
-     * number of samples to fit a linear model, 1-[alpha] is the
-     * proportion of accepted linear model of the test (99%, alpha=0.01,
-     * means that 99% of all linear model with a Gaussian noise are
-     * accepted).
-     *
-     * @param idx the surfel of interest.
-     * @param n the minimum number of samples (min is 3).
-     * @param alpha is the proportion of rejected linear model (the ones
-     * with big variance).
-     *
-     * @return the standard scale at point [idx].
-     */
-    uint detailedStandardScaleMax
-    ( uint idx,
-      uint n,
-      double alpha ) const;
-    
-    
     /**
      * Test BK 21/09/09
      *
@@ -334,38 +238,6 @@ namespace ImaGene
   public:
 
     
-    /**  
-     * Compute a linear regression starting from the maximal scale with a
-     * [shift] to the initial scale. It returns the indice of the last
-     * scale (indexed from 0) for which the linear is computed. The linear
-     * part is represented by two points [beginInterval] and [endInterval].
-     * 
-     * @param xp  the x-value of the profile (log(scale+1)).
-     * @param yp  the y-value (mean or median value) of the profile (log(length of ms)).
-     * @param x  the x-values of the profile (log(scale+1)).
-     * @param y  the y-values of the profile (log(length of ms)).
-     * @param nb nb[i] contains the number of samples associated to x[i]. 
-     * 
-     * @param beginInterval (return) the first point of the linear part. 
-     * @param endInterval (return) the last point of the linear part. 
-     *
-     * @param idx the index of the surfel.
-     * @param n the minimum number of samples (min is 3).
-     * @param alpha is the proportion of rejected linear model (the ones
-     * with big variance).
-     **/
-    uint
-    computeRegLinearPart ( const std::vector<double> & x, 
-			   const std::vector<double> & y, 
-			   const std::vector<double> & px, 
-			   const std::vector<double> & py,
-			   Vector2D & beginInterval, 
-			   Vector2D & endInterval, 
-			   const std::vector<uint> & nb, 
-			   uint n,  
-			   double alpha, 
-			   uint shift ) const;
-
     
   private:
     

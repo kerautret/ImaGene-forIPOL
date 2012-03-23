@@ -45,7 +45,7 @@ static const int RESOLUTION=1200;
 static int samplingSizeMax = 20;
 
 
-void  plotDetailedStandardScale (uint idx, int dec, uint n,  const  MultiscaleProfile &MP, double alpha, fstream & fstrProfiles);
+
 Vector2i getPointFromFreemanChain(const FreemanChain &fc, uint pos);
 
 double getSlopeFromMeaningfulScales(const MultiscaleProfile &mp, uint index, uint min_size, uint max_slope);
@@ -74,7 +74,7 @@ main( int argc, char** argv )
   
   // def de bruit:
   args.addOption( "-meaningfulScales", "-meaningfulScales <min_size> <max_slope>: specifies parameters for defining meaningful scales: minimum size of the interval of scales and maximum slopes between consecutivesamples within.", "1", "-0.2" );  
-  args.addOption( "-standardScale", "-standardScale <n> <alpha>: choose the standard scale instead of noise level and specifies the parameters for defining the linear model used in the standard scale. [n] is the minimum number of samples to fit a linear model, 1-[alpha] is the proportion of accepted linear model of the test (99%, alpha=0.01, means that 99% of all linear model with a Gaussian noise are accepted).", "4", "0.01" );  
+ 
   
   
   // options d'affichage
@@ -197,13 +197,9 @@ main( int argc, char** argv )
     uint noiseLevel =0;
     
     
-    if(args.check("-meaningfulScales")){
-      noiseLevel =  MP.noiseLevel(i, mscales_min_size, mscales_max_slope);
-    }else if(args.check("-standardScale")){
-      noiseLevel =  MP.detailedStandardScale(i, n, alpha );
-    }    
     
-
+      noiseLevel =  MP.noiseLevel(i, mscales_min_size, mscales_max_slope);
+    
     if(args.check("-displayFlat")){
       
       double threshold = args.getOption("-displayFlat")->getFloatValue(0);
@@ -350,23 +346,6 @@ getSlopeFromMeaningfulScales(const MultiscaleProfile &mp, uint index, uint min_s
 
 
 
-
-void 
-plotDetailedStandardScale (uint idx, int dec, uint n,  const  MultiscaleProfile &MP, double alpha, fstream &fstrProfiles) {
-  vector<double> x;
-  vector<double> y;
-  vector<uint> indiceScales;
-  MP.profileFromLinearReg(x, y, indiceScales, idx, n, alpha);
-  
-  
-  for(int i=0; i<x.size(); i++){
-    fstrProfiles << exp(x.at(i)) <<  " " <<  exp(y.at(i)) << endl;
-
-  }
-  cerr << "detailedStandardScaleMax=" << MP.detailedStandardScaleMax(idx, n, alpha) << endl;
-
-  
-}
 
 
 

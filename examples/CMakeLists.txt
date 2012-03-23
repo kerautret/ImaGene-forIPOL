@@ -28,8 +28,7 @@ set( EXAMPLES_EXEC_FILES_WITH_GMP
      exampleMultiScaleProfile
      exampleNormalEstimation
      exampleExportNoiseLevels
-     tcover3d
-     tcover-image
+     tcover3d     
      normalEstimationPerVoxel
      normalEstimationPerSurfel
      )
