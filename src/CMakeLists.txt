@@ -129,21 +129,6 @@ set( ImaGene_SRC
 	3d/ImplicitSurfaces.cxx 
 	3d/ImplicitSurfaces3D.cxx 
 	3d/ImplicitSurfaceEmbedder.cxx 
-	arithmetic/IntegerComputer.cxx
-	arithmetic/ConvexIntegerPolygon.cxx
-	arithmetic/COBAPlaneRecognition.cxx
-	arithmetic/COBAPlaneRecognitionWithSet.cxx
-	planes/CDigitalGraph.cxx
-	planes/DigitalMidSurfaceGraph.cxx
-	planes/DigitalSurfaceGraph.cxx
-	planes/CompletedDigitalSurfaceGraph.cxx
-	planes/DigitalImageGraph.cxx
-	planes/IsotropicExpander.cxx
-	planes/IsotropicExpanderWithSet.cxx
-	planes/NuThickDisk.cxx
-	planes/TangentialCover.cxx
-	planes/TangentialCoverDecomposition.cxx
-	planes/TangentialCoverHierarchy.cxx
         )
 
 

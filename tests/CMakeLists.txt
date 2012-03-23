@@ -39,7 +39,6 @@ set( TEST_EXEC_FILES
 	test_Tangent
 	test_ErrorMeasure
 	test_Extract3DCC
-        test_IntegerComputer
 	test_BlurredSegmentTgtCover
 	test_SBFraction
 )
