@@ -86,21 +86,6 @@ list( APPEND CMAKE_MODULE_PATH . )
 #message("CMAKE_MODULE_PATH=" ${CMAKE_MODULE_PATH})
 
 
-find_package(GMP QUIET)
-if ( GMP_FOUND )
-   message( "[OK] GMP found. include=${GMP_INCLUDE_DIR}" )
-   include_directories( ${GMP_INCLUDE_DIR} )
-else ( GMP_FOUND )
-   message( "[--] GMP not found. Plane recognition will not be built." )
-endif ( GMP_FOUND )
-
-find_package(GMPXX QUIET)
-if ( GMPXX_FOUND )
-   message( "[OK] GMPXX found. include=${GMPXX_INCLUDE_DIR}" )
-   include_directories( ${GMPXX_INCLUDE_DIR} )
-else ( GMPXX_FOUND )
-   message( "[--] GMPXX not found. Plane recognition will not be built." )
-endif ( GMPXX_FOUND )
 
 
 
