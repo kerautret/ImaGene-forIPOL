@@ -85,11 +85,6 @@ set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 list( APPEND CMAKE_MODULE_PATH . )
 #message("CMAKE_MODULE_PATH=" ${CMAKE_MODULE_PATH})
 
-find_package(BOOST 1.35 QUIET REQUIRED)
-if ( BOOST_FOUND )
-   message( "[OK] BOOST v" ${BOOST_VERSION} " found. include=${BOOST_INCLUDE_DIR}" )
-   include_directories( ${BOOST_INCLUDE_DIR} )
-endif ( BOOST_FOUND )
 
 find_package(GMP QUIET)
 if ( GMP_FOUND )
