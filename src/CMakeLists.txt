@@ -118,13 +118,6 @@ set( ImaGene_SRC
 	mathutils/Statistic.cxx 
 	mathutils/Statistics.cxx 
 	mathutils/SternBrocot.cxx 
- 	planeRecognition/Z3.cxx
-	planeRecognition/Z2.cxx
-	planeRecognition/liste.cxx 
-	planeRecognition/utils.cxx
-	planeRecognition/convexe.cxx
-	planeRecognition/COBA.cxx 
-	planeRecognition/planeRecognitionOnSurfaces.cxx
 	mathutils/MeasureOfStraightLines.cxx
 	3d/C4CIteratorOnImplicitDigitalSurface.cxx 
 	3d/ImplicitDigitalSurface.cxx 
@@ -136,21 +129,6 @@ set( ImaGene_SRC
 	3d/ImplicitSurfaces.cxx 
 	3d/ImplicitSurfaces3D.cxx 
 	3d/ImplicitSurfaceEmbedder.cxx 
-	arithmetic/IntegerComputer.cxx
-	arithmetic/ConvexIntegerPolygon.cxx
-	arithmetic/COBAPlaneRecognition.cxx
-	arithmetic/COBAPlaneRecognitionWithSet.cxx
-	planes/CDigitalGraph.cxx
-	planes/DigitalMidSurfaceGraph.cxx
-	planes/DigitalSurfaceGraph.cxx
-	planes/CompletedDigitalSurfaceGraph.cxx
-	planes/DigitalImageGraph.cxx
-	planes/IsotropicExpander.cxx
-	planes/IsotropicExpanderWithSet.cxx
-	planes/NuThickDisk.cxx
-	planes/TangentialCover.cxx
-	planes/TangentialCoverDecomposition.cxx
-	planes/TangentialCoverHierarchy.cxx
         )
 
 

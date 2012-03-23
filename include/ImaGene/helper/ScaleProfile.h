@@ -292,44 +292,8 @@ namespace ImaGene
 			    double lower_bound_at_scale_1 = 1.0,
 			    double lower_bound_slope = -2.0 ) const;
 
-    /**
-     * The standard scale is the first scale starting from which the
-     * profile is straight until the maximum scale. The straightness is
-     * evaluated through a statistic test based on a simple linear
-     * regression model. It requires two parameters: [n] is the minimum
-     * number of samples to fit a linear model, 1-[alpha] is the
-     * proportion of accepted linear model of the test (99%, alpha=0.01,
-     * means that 99% of all linear model with a Gaussian noise are
-     * accepted).
-     *
-     * @param n the minimum number of samples (min is 3).
-     * @param alpha is the proportion of rejected linear model (the ones
-     * with big variance).
-     *
-     * @return the standard scale at point [idx].
-     */
-    uint standardScale( uint n = 4,
-			double alpha = 0.01 ) const;
-			
-    /**
-     * Return the slope of the last straight part of the profile
-     * The straightness is
-     * evaluated through a statistic test based on a simple linear
-     * regression model. It requires two parameters: [n] is the minimum
-     * number of samples to fit a linear model, 1-[alpha] is the
-     * proportion of accepted linear model of the test (99%, alpha=0.01,
-     * means that 99% of all linear model with a Gaussian noise are
-     * accepted).
-     *
-     * @param n the minimum number of samples (min is 3).
-     * @param alpha is the proportion of rejected linear model (the ones
-     * with big variance).
-     *
-     * @return the slope of the last straight part of the profile.
-     */
-    double slope( uint n = 4,
-		  double alpha = 0.01 ) const;
 
+ 
 
     // ----------------------- Interface --------------------------------------
   public:
