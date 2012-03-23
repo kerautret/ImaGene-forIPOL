@@ -118,13 +118,6 @@ set( ImaGene_SRC
 	mathutils/Statistic.cxx 
 	mathutils/Statistics.cxx 
 	mathutils/SternBrocot.cxx 
- 	planeRecognition/Z3.cxx
-	planeRecognition/Z2.cxx
-	planeRecognition/liste.cxx 
-	planeRecognition/utils.cxx
-	planeRecognition/convexe.cxx
-	planeRecognition/COBA.cxx 
-	planeRecognition/planeRecognitionOnSurfaces.cxx
 	mathutils/MeasureOfStraightLines.cxx
 	3d/C4CIteratorOnImplicitDigitalSurface.cxx 
 	3d/ImplicitDigitalSurface.cxx 

@@ -24,14 +24,6 @@ foreach( X ${EXAMPLES_EXEC_FILES} )
 	 target_link_libraries( ${EXAMPLES_EXEC_NAME} ${LIBIMAGENE_NAME} )
 endforeach( X )
 
-set( EXAMPLES_EXEC_FILES_WITH_GMP 
-     exampleMultiScaleProfile
-     exampleNormalEstimation
-     exampleExportNoiseLevels
-     tcover3d     
-     normalEstimationPerVoxel
-     normalEstimationPerSurfel
-     )
 
 foreach( X ${EXAMPLES_EXEC_FILES_WITH_GMP} )
 	 set( EXAMPLES_EXEC_NAME "${X}${SUFFIXBIN}" )
