@@ -1,0 +1,186 @@
+//////////////////////////////////////////////////////////////////////////////
+//                                                                          //
+// File name : DigitalMidSurfaceGraph.ih
+//
+// Creation : 2011/01/13
+//
+// Version : 2011/01/13
+//
+// Author : JOL
+//
+// Summary : Implementation of inline methods defined in DigitalMidSurfaceGraph.h 
+//
+// History :
+//	2011/01/13 : ?Name? : ?What?
+//
+// Rcs Id : "@(#)class DigitalMidSurfaceGraph declaration."
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// IMPLEMENTATION of inline methods.
+///////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+#include <cstdlib>
+#include <iostream>
+//////////////////////////////////////////////////////////////////////////////
+
+#if defined(NO_DEBUG)
+#define ASSERT_DigitalMidSurfaceGraph(x)
+#define DEBUGCMD_DigitalMidSurfaceGraph(x)
+#else //defined(NO_DEBUG)
+#define ASSERT_DigitalMidSurfaceGraph(x) if(!(x)) \
+    { std::cerr << "Assertion failed : (" << #x << ')' << std::endl \
+    << "In file : " << __FILE__ << " at line #" << __LINE__ << std::endl \
+    << "Compiled the " << __DATE__ << " at " << __TIME__ << std::endl; abort();}
+#define DEBUGCMD_DigitalMidSurfaceGraph(x) x
+#endif // else defined(NO_DEBUG)
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of inline methods                                          //
+
+/**
+ * @return the empty set of vertices (subset of this graph).
+ */
+inline
+ImaGene::DigitalMidSurfaceGraph::Set
+ImaGene::DigitalMidSurfaceGraph::emptySet() const
+{
+  return KnRCellSet::create( mySpace, mySpace.dim() - 1, true, 0 );
+}
+
+/**
+ * @return the whole set of vertices (subset of this graph).
+ */
+inline
+ImaGene::DigitalMidSurfaceGraph::Set
+ImaGene::DigitalMidSurfaceGraph::wholeSet() const
+{
+  return mySurface;
+}
+
+/**
+ * Sets the neighborhood of [p] in [n].
+ *
+ * @param p any vertex of this graph.
+ * @param n (modified) contains after the neighborhood of p.
+ */
+inline
+void 
+ImaGene::DigitalMidSurfaceGraph::setNeighborhood
+( const Vertex & p, Neighborhood & n ) const
+{
+  Vertex nsurf;
+  n.clear();
+  n.setCenter( p );
+  myTracker->move( p );
+  n.push_back( p );
+  // Loop in all tracking directions. (Generic tracking).
+  for ( KnSpace::dir_iterator q = mySpace.sbegin_dirs( p ); 
+	! q.end(); 
+	++q )
+    {
+      unsigned int track_dir = *q;
+      nsurf = myTracker->adjacent( track_dir, false );
+      if ( myTracker->lastCode() != 0 ) n.push_back( nsurf );
+      nsurf = myTracker->adjacent( track_dir, true );
+      if ( myTracker->lastCode() != 0 ) n.push_back( nsurf );
+    } //for ( KnSpace::dir_iterator q = mySpace.sbegin_dirs( p ); ! q.end(); ++q )
+}
+
+/**
+ * Sets the proper neighborhood of [p] in [n].
+ *
+ * @param p any vertex of this graph.
+ * @param n (modified) contains after the proper neighborhood of p.
+ */
+inline
+void 
+ImaGene::DigitalMidSurfaceGraph::setProperNeighborhood
+( const Vertex & p, Neighborhood & n ) const
+{
+  Vertex nsurf;
+  n.clear();
+  n.setCenter( p );
+  myTracker->move( p );
+  // Loop in all tracking directions. (Generic tracking).
+  for ( KnSpace::dir_iterator q = mySpace.sbegin_dirs( p ); 
+	! q.end(); 
+	++q )
+    {
+      unsigned int track_dir = *q;
+      nsurf = myTracker->adjacent( track_dir, false );
+      if ( myTracker->lastCode() != 0 ) n.push_back( nsurf );
+      nsurf = myTracker->adjacent( track_dir, true );
+      if ( myTracker->lastCode() != 0 ) n.push_back( nsurf );
+    } //for ( KnSpace::dir_iterator q = mySpace.sbegin_dirs( p ); ! q.end(); ++q )
+}
+
+/**
+ * @return the dimension of the embedding space.
+ */
+inline
+int
+ImaGene::DigitalMidSurfaceGraph::dim() const
+{
+  return mySpace.dim();
+}
+
+/**
+ * @return the diameter of the graph in its embedding space.
+ */
+inline
+int
+ImaGene::DigitalMidSurfaceGraph::diameter() const
+{
+  if ( myDiameter == 0 )
+    myDiameter = std::max( mySpace.size(0)*2, 
+			   std::max( mySpace.size(1)*2, mySpace.size(2)*2 ) );
+  return myDiameter;
+}
+
+/**
+ * Embeds the vertex [p] in the digital space.
+ *
+ * @param p any vertex of this graph.
+ * @param coords (modified) the integer coordinates of the embedding of [p].
+ */
+inline
+void 
+ImaGene::DigitalMidSurfaceGraph::embed
+( const Vertex & p, int* coords ) const
+{
+  unsigned int orth_dir = mySpace.sorthDir( p );
+  Kn_sid v = mySpace.sincident( p, orth_dir, mySpace.sdirect( p, orth_dir ) );
+  mySpace.skdecodeCoords( v, coords );
+}
+
+inline
+unsigned int 
+ImaGene::DigitalMidSurfaceGraph::preferredAxis( const Vertex & v ) const
+{
+  return mySpace.sorthDir( v );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of inline functions and external operators                 //
+
+/**
+ * Overloads 'operator<<' for displaying objects of class 'DigitalMidSurfaceGraph'.
+ * @param that_stream the output stream where the object is written.
+ * @param that_object_to_display the object of class 'DigitalMidSurfaceGraph' to write.
+ * @return the output stream after the writing.
+ */
+std::ostream&
+ImaGene::operator<<( std::ostream & that_stream, 
+		 const DigitalMidSurfaceGraph & that_object_to_display )
+{
+  that_object_to_display.selfDisplay( that_stream );
+  return that_stream;
+}
+
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////
+
+

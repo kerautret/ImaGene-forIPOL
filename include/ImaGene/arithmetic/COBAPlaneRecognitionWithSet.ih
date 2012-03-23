@@ -1,0 +1,243 @@
+//////////////////////////////////////////////////////////////////////////////
+//                                                                          //
+// File name : COBAPlaneRecognitionWithSet.ih
+//
+// Creation : 2011/01/12
+//
+// Version : 2011/01/12
+//
+// Author : JOL
+//          Emilie Charrier
+//
+// Summary : Implementation of inline methods defined in COBAPlaneRecognitionWithSet.h 
+//
+// History :
+//	2011/01/12 : ?Name? : ?What?
+//
+// Rcs Id : "@(#)class COBAPlaneRecognitionWithSet declaration."
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// IMPLEMENTATION of inline methods.
+///////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+#include <cstdlib>
+#include <iostream>
+//////////////////////////////////////////////////////////////////////////////
+
+#if defined(NO_DEBUG)
+#define ASSERT_COBAPlaneRecognitionWithSet(x)
+#define DEBUGCMD_COBAPlaneRecognitionWithSet(x)
+#else //defined(NO_DEBUG)
+#define ASSERT_COBAPlaneRecognitionWithSet(x) if(!(x)) \
+    { std::cerr << "Assertion failed : (" << #x << ')' << std::endl \
+    << "In file : " << __FILE__ << " at line #" << __LINE__ << std::endl \
+    << "Compiled the " << __DATE__ << " at " << __TIME__ << std::endl; abort();}
+#define DEBUGCMD_COBAPlaneRecognitionWithSet(x) x
+#endif // else defined(NO_DEBUG)
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of inline methods                                          //
+//-----------------------------------------------------------------------------
+inline
+ImaGene::COBAPlaneRecognitionWithSet::COBAPlaneRecognitionWithSet
+( const COBAPlaneRecognitionWithSet & other )
+  : myAxis( other.myAxis ), myG( other.myG ), 
+    myWidth( other.myWidth ), myState( other.myState )
+{
+}
+//-----------------------------------------------------------------------------
+inline
+ImaGene::COBAPlaneRecognitionWithSet &
+ImaGene::COBAPlaneRecognitionWithSet::operator=
+( const COBAPlaneRecognitionWithSet & other )
+{ 
+  if ( this != &other )
+    {
+      myAxis = other.myAxis;
+      myG = other.myG;
+      myWidth = other.myWidth;
+      myState = other.myState;
+    }
+}
+//-----------------------------------------------------------------------------
+inline
+void 
+ImaGene::COBAPlaneRecognitionWithSet::clear()
+{
+  myState.myPts.clear();
+  myState.myCorePts->clear();
+  myState.cip.clear();
+}
+//-----------------------------------------------------------------------------
+inline
+void
+ImaGene::COBAPlaneRecognitionWithSet::getState( State & state )
+{
+  Iterator it = myState.myPts.begin();
+  Iterator it_end = myState.myPts.end();
+  if ( it != it_end )
+    {
+      // One has first to clear the given state, in the case it is
+      // pointing at the same "Core".
+      // std::cerr << "[getState "
+      // 		<< "(" << *myState.indmin << "<" << *myState.indmax << ")";
+      // if ( ! state.myCorePts.unique() ) 
+      state.myCorePts.forceRelease();
+      for ( ; it != it_end; ++it )
+	{
+	  Iterator it_new = myState.myCorePts->insert( *it ).first;
+	  if ( it == myState.indmax ) 
+	    {
+	      myState.indmax = it_new; 
+	      //std::cerr << " max=" << *myState.indmax;
+	    }
+	  if ( it == myState.indmin ) 
+	    {
+	      myState.indmin = it_new; 
+	      //std::cerr << " min=" << *myState.indmin;
+	    }
+	}
+      myState.myPts.clear();
+      //std::cerr << "]" << std::endl;
+
+    }
+  state = myState;
+}
+//-----------------------------------------------------------------------------
+inline
+void
+ImaGene::COBAPlaneRecognitionWithSet::setState( const State & state )
+{
+  myState = state;
+}
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+inline
+unsigned int
+ImaGene::COBAPlaneRecognitionWithSet::size() const
+{
+  // Const necessary since myCorePts is mutable. Forces to use const
+  // methods and prevents a possible copy on write.
+  const CowPtr< std::set<Point3i> > & constCorePts = myState.myCorePts;
+  return myState.myPts.size() + constCorePts->size();
+}
+//-----------------------------------------------------------------------------
+template <typename Vector3D>
+inline
+void 
+ImaGene::COBAPlaneRecognitionWithSet::getUpper( Vector3D & upper ) const
+{
+  Vector3D n;
+  getNormal( n );
+  // double l = sqrt( n[ 0 ] * n[ 0 ] + n[ 1 ] * n[ 1 ] +n[ 2 ] * n[ 2 ] );
+  // n[ 0 ] /= l;
+  // n[ 1 ] /= l;
+  // n[ 2 ] /= l;
+  Integer norm = myState.N.x * myState.N.x
+    + myState.N.y * myState.N.y
+    + myState.N.z * myState.N.z;
+  double coef = sqrt( get_d( norm ) );
+  double max = get_d( myState.max );
+  upper[ 0 ] = n[ 0 ] * max / coef;
+  upper[ 1 ] = n[ 1 ] * max / coef;
+  upper[ 2 ] = n[ 2 ] * max / coef;
+}
+//-----------------------------------------------------------------------------
+template <typename Vector3D>
+inline
+void 
+ImaGene::COBAPlaneRecognitionWithSet::getLower( Vector3D & lower ) const
+{
+  Vector3D n;
+  getNormal( n );
+  // double l = sqrt( n[ 0 ] * n[ 0 ] + n[ 1 ] * n[ 1 ] +n[ 2 ] * n[ 2 ] );
+  // n[ 0 ] /= l;
+  // n[ 1 ] /= l;
+  // n[ 2 ] /= l;
+  Integer norm = myState.N.x * myState.N.x
+    + myState.N.y * myState.N.y
+    + myState.N.z * myState.N.z;
+  double coef = sqrt( get_d( norm ) );
+  double min = get_d( myState.min );
+  lower[ 0 ] = n[ 0 ] * min / coef;
+  lower[ 1 ] = n[ 1 ] * min / coef;
+  lower[ 2 ] = n[ 2 ] * min / coef;
+}
+//-----------------------------------------------------------------------------
+template <typename Vector3D>
+inline
+void 
+ImaGene::COBAPlaneRecognitionWithSet::getNormal( Vector3D & normal ) const
+{
+  switch( myAxis ) {
+    case 0 : 
+      normal[0] = 1.0;
+      normal[1] = get_d( myState.N.y) / get_d( myState.N.x );
+      normal[2] = get_d( myState.N.z) / get_d( myState.N.x );
+      break;
+    case 1 : 
+      normal[0] = get_d( myState.N.x) / get_d( myState.N.y );
+      normal[1] = 1.0;
+      normal[2] = get_d( myState.N.z) / get_d( myState.N.y );
+      break;
+    case 2 : 
+      normal[0] = get_d( myState.N.x) / get_d( myState.N.z );
+      normal[1] = get_d( myState.N.y) / get_d( myState.N.z );
+      normal[2] = 1.0;
+      break;
+  }
+}
+//-----------------------------------------------------------------------------
+template <typename Vector3D>
+inline
+void 
+ImaGene::COBAPlaneRecognitionWithSet::
+getUnitNormal( Vector3D & normal ) const
+{
+  getNormal( normal );
+  double l = sqrt( normal[ 0 ] * normal[ 0 ]
+		   + normal[ 1 ] * normal[ 1 ]
+		   + normal[ 2 ] * normal[ 2 ] );
+  normal[ 0 ] /= l;
+  normal[ 1 ] /= l;
+  normal[ 2 ] /= l;
+}
+//-----------------------------------------------------------------------------
+inline
+void 
+ImaGene::COBAPlaneRecognitionWithSet::
+getBounds( double & min, double & max ) const
+{
+  double nx = get_d( myState.N.x );
+  double ny = get_d( myState.N.y );
+  double nz = get_d( myState.N.z );
+  double l = sqrt( nx*nx + ny*ny + nz*nz );
+  min = get_d( myState.min ) / l;
+  max = get_d( myState.max ) / l;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of inline functions and external operators                 //
+
+/**
+ * Overloads 'operator<<' for displaying objects of class 'COBAPlaneRecognitionWithSet'.
+ * @param that_stream the output stream where the object is written.
+ * @param that_object_to_display the object of class 'COBAPlaneRecognitionWithSet' to write.
+ * @return the output stream after the writing.
+ */
+std::ostream&
+ImaGene::operator<<( std::ostream & that_stream, 
+		 const COBAPlaneRecognitionWithSet & that_object_to_display )
+{
+  that_object_to_display.selfDisplay( that_stream );
+  return that_stream;
+}
+
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////
+
+

@@ -1,0 +1,888 @@
+//////////////////////////////////////////////////////////////////////////////
+//                                                                          //
+// File name : TangentialCover.ih
+//
+// Creation : 2011/02/23
+//
+// Version : 2011/02/23
+//
+// Author : JOL
+//
+// Summary : Implementation of inline methods defined in TangentialCover.h 
+//
+// History :
+//	2011/02/23 : ?Name? : ?What?
+//
+// Rcs Id : "@(#)class TangentialCover declaration."
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// IMPLEMENTATION of inline methods.
+///////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+#include <cstdlib>
+#include <cmath>
+#include <iostream>
+#include <algorithm>
+#include <iterator>
+#include "ImaGene/timetools/Clock.h"
+#include "ImaGene/mathutils/Mathutils.h"
+//////////////////////////////////////////////////////////////////////////////
+
+#if defined(NO_DEBUG)
+#define ASSERT_TangentialCover(x)
+#define DEBUGCMD_TangentialCover(x)
+#else //defined(NO_DEBUG)
+#define ASSERT_TangentialCover(x) if(!(x)) \
+    { std::cerr << "Assertion failed : (" << #x << ')' << std::endl \
+    << "In file : " << __FILE__ << " at line #" << __LINE__ << std::endl \
+    << "Compiled the " << __DATE__ << " at " << __TIME__ << std::endl; abort();}
+#define DEBUGCMD_TangentialCover(x) x
+#endif // else defined(NO_DEBUG)
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of inline methods                                          //
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::MaximalPlaneSummary::
+init( Methods & methods, const ComputedDisk & disk, const Set & maximal_plane )
+{
+  /* the center of the disk which defines the maximal plane. */
+  center = disk.center(); 
+  /* the position of the vertex. */
+  typename ComputedDisk::Point3i p = disk.centerEmbedding();
+  center_embedding[ 0 ] = p[ 0 ]; 
+  center_embedding[ 1 ] = p[ 1 ]; 
+  center_embedding[ 2 ] = p[ 2 ]; 
+  /* the major axis of this plane. */
+  major_axis = disk.majorAxis(); 
+  /* the maximal radius of the disk. */
+  radius = disk.radius(); 
+  /* the radius at which it is no more a nu-thick disk ( > radius). */
+  limit_radius = disk.limitRadius(); 
+  /* the normal direction. */
+  disk.getUnitNormal( normal );  
+  /* upper plane offset: normal.x = upper */
+  /* lower plane offset: normal.x = lower */
+  disk.getBounds( lower, upper );
+  /* the area of the projected disk. */
+  projectedDiskArea = 0.0;
+  typedef typename ComputedDisk::MarkedSet MarkedSet;
+  const MarkedSet & disk_vertices = disk.diskVertices();
+  for ( typename MarkedSet::const_iterator it = disk_vertices.begin(),
+	  it_end = disk_vertices.end();
+	it != it_end; ++it )
+    projectedDiskArea += methods.projectedArea( *it, normal );
+  /* the area of the projected maximal plane. */
+  projectedArea = 0.0;
+  for ( typename Set::const_iterator it = maximal_plane.begin(),
+	  it_end = maximal_plane.end();
+	it != it_end; ++it )
+    projectedArea += methods.projectedArea( *it, normal );
+  // std::cerr << "  +-- MPS at " << center << " r=" << radius
+  // 	    << " N=(" << normal[ 0 ] << "," << normal[ 1 ] << "," << normal[ 2 ] << ")" 
+  // 	    << " mp_area(" << maximal_plane.size() << ")=" << projectedArea 
+  // 	    << " disk_area(" << disk_vertices.size() << ")=" << projectedDiskArea
+  // 	    << std::endl;
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+template <typename Vector3D>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::MaximalPlaneSummary::
+projectUpperPlane( Vector3D & proj, const Vector3D & p ) const
+{
+  double dot = p[ 0 ] * normal[ 0 ] 
+    +  p[ 1 ] * normal[ 1 ] 
+    +  p[ 2 ] * normal[ 2 ];
+  proj[ 0 ] = ( upper - dot ) * normal[ 0 ] + p[ 0 ];
+  proj[ 1 ] = ( upper - dot ) * normal[ 1 ] + p[ 1 ];
+  proj[ 2 ] = ( upper - dot ) * normal[ 2 ] + p[ 2 ];
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+template <typename Vector3D>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::MaximalPlaneSummary::
+projectLowerPlane( Vector3D & proj, const Vector3D & p ) const
+{
+  double dot = p[ 0 ] * normal[ 0 ] 
+    +  p[ 1 ] * normal[ 1 ] 
+    +  p[ 2 ] * normal[ 2 ];
+  proj[ 0 ] = ( lower - dot ) * normal[ 0 ] + p[ 0 ];
+  proj[ 1 ] = ( lower - dot ) * normal[ 1 ] + p[ 1 ];
+  proj[ 2 ] = ( lower - dot ) * normal[ 2 ] + p[ 2 ];
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+template <typename Vector3D>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::MaximalPlaneSummary::
+getLikelyUnitNormal( Vector3D & n ) const
+{
+  if ( ( projectedDiskArea < 0.0 )
+       || ( ( projectedDiskArea == 0.0 ) && ( projectedArea < 0.0 ) ) )
+    {
+      n[ 0 ] = -normal[ 0 ];
+      n[ 1 ] = -normal[ 1 ];
+      n[ 2 ] = -normal[ 2 ];
+    }
+  else
+    {
+      n[ 0 ] = normal[ 0 ];
+      n[ 1 ] = normal[ 1 ];
+      n[ 2 ] = normal[ 2 ];
+    }
+}
+
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::MaximalPlaneSummary::
+selfDisplay( std::ostream & out ) const
+{
+  out << "MP " << radius << " " << projectedArea << " "
+      << projectedDiskArea << std::endl;
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+ImaGene::TangentialCover<TDigitalGraph>::
+~TangentialCover()
+{
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+ImaGene::TangentialCover<TDigitalGraph>::
+TangentialCover()
+{
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+ImaGene::TangentialCover<TDigitalGraph>::
+TangentialCover( const TangentialCover & other )
+  : myDGraph( other.myDGraph ),
+    myScale( other.myScale ),
+    myActiveVertices( other.myActiveVertices ),
+    myAllPlanes( other.myAllPlanes ),
+    myMapVtx2MP( other.myMapVtx2MP ),
+    myVtx2Actives( other.myVtx2Actives ),
+    myMapVtx2CoreMP( other.myMapVtx2CoreMP )
+{
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+ImaGene::TangentialCover<TDigitalGraph> &
+ImaGene::TangentialCover<TDigitalGraph>::
+operator=( const TangentialCover & other )
+{
+  if ( this != &other )
+    {
+      myDGraph = other.myDGraph;
+      myScale = other.myScale;
+      myActiveVertices = other.myActiveVertices;
+      myAllPlanes = other.myAllPlanes;
+      myMapVtx2MP = other.myMapVtx2MP;
+      myVtx2Actives = other.myVtx2Actives;
+      myMapVtx2CoreMP = other.myMapVtx2CoreMP;
+    }
+  return *this;
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+const TDigitalGraph*
+ImaGene::TangentialCover<TDigitalGraph>::
+digitalGraph() const
+{
+  return myDGraph;
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+template <typename OutputIterator>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::
+getMaximalPlanesIndices( Vertex vtx, OutputIterator it ) const
+{
+  const MaximalPlaneIndexSet & mp_indices = myMapVtx2MP.find( vtx )->second;
+  for ( typename MaximalPlaneIndexSet::const_iterator 
+	  itmp = mp_indices.begin(), itmp_end = mp_indices.end();
+	itmp != itmp_end; ++itmp )
+    {
+      *it++ = *itmp;
+    }
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+typename ImaGene::TangentialCover<TDigitalGraph>::MaximalPlaneIndex
+ImaGene::TangentialCover<TDigitalGraph>::
+getCoreMaximalPlaneIndex( Vertex vtx ) const
+{
+  typedef typename MapVertexToMaximalPlane::const_iterator ConstIterator;
+  ConstIterator it = myMapVtx2CoreMP.find( vtx );
+  if ( it != myMapVtx2CoreMP.end() )
+    return it->second;
+  std::cerr << "[TangentialCover::getCoreMaximalPlaneIndex]"
+	    << " Error: vtx " << vtx << " has no core MP." << std::endl;
+  return 0;
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+const typename ImaGene::TangentialCover<TDigitalGraph>::MaximalPlaneSummary & 
+ImaGene::TangentialCover<TDigitalGraph>::
+maximalPlane( MaximalPlaneIndex idx ) const
+{
+  ASSERT_TangentialCover( idx < myAllPlanes.size() );
+  return myAllPlanes[ idx ];
+}
+
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::
+getAveragingCoefficients( std::vector<double> & coefs, Vertex p, 
+			  AveragingMode nd ) const
+{
+  const MaximalPlaneIndexSet & mp_indices = myMapVtx2MP.find( p )->second;
+  unsigned int nb = mp_indices.size();
+  coefs.resize( nb );
+  double sum = 0.0;
+  typename ComputedDisk::Point3i pi;
+  myDGraph->embed( p, pi.data() );
+  double px[ 3 ];
+  px[ 0 ] = pi[ 0 ];
+  px[ 1 ] = pi[ 1 ];
+  px[ 2 ] = pi[ 2 ];
+  unsigned int i = 0;
+  unsigned int maxi = 0;
+  double max = -1.0;
+  for ( typename MaximalPlaneIndexSet::const_iterator 
+	  it = mp_indices.begin(), it_end = mp_indices.end();
+	it != it_end; ++it )
+    {
+      const MaximalPlaneSummary & mps = myAllPlanes[ *it ];
+      double coef = 1.0;
+      if ( nd != SimpleAveraging )
+	{
+	  double d = 
+	    sqrt( Mathutils::sqr( px[ 0 ] - mps.center_embedding[ 0 ] )
+		  + Mathutils::sqr( px[ 1 ] - mps.center_embedding[ 1 ] )
+		  + Mathutils::sqr( px[ 2 ] - mps.center_embedding[ 2 ] ) );
+	  if ( nd == RadiusAndDistanceAveraging )
+	    coef = mps.radius / ( d + 1.0 );
+	  else if ( nd == DistanceAveraging )
+	    coef = 1.0 / ( d + 1.0 );
+	  else if ( nd == InOutAveraging )
+	    coef = d <= mps.radius ? 1.0 : Mathutils::sqr(mps.radius / d);
+	}
+      // Max disk or plane
+      if ( nd == MaxProjectedDisk )
+	{
+	  if ( abs( mps.projectedDiskArea ) > max )
+	    {
+	      max = abs( mps.projectedDiskArea );
+	      maxi = i;
+	    }
+	}
+      else if ( nd == MaxProjectedPlane )
+	{
+	  if ( abs( mps.projectedArea ) > max )
+	    {
+	      max = abs( mps.projectedArea );
+	      maxi = i;
+	    }
+	}
+      // End loop.
+      coefs[ i++ ] = coef;
+      sum += coef;
+    }
+  if ( ( nd != MaxProjectedDisk ) && ( nd != MaxProjectedPlane ) )
+    {
+      for ( i = 0; i < nb; ++i )
+	coefs[ i ] /= sum;
+    }
+  else
+    {
+      for ( i = 0; i < nb; ++i )
+	coefs[ i ] = ( i == maxi ) ? 1.0 : 0.0;
+    }
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+template <typename Vector3D>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::
+getEstimatedNormal( Vector3D & n, Vertex p, 
+		    const std::vector<double> & coefs ) const
+{
+  const MaximalPlaneIndexSet & mp_indices = myMapVtx2MP.find( p )->second;
+  n[ 0 ] = n[ 1 ] = n[ 2 ] = 0.0;
+  double nmp[ 3 ];
+  unsigned int i = 0;
+  unsigned int nb = mp_indices.size();
+  for ( typename MaximalPlaneIndexSet::const_iterator 
+	  it = mp_indices.begin(), it_end = mp_indices.end();
+	it != it_end; ++it )
+    {
+      ASSERT_TangentialCover( i < nb );
+      const MaximalPlaneSummary & mps = myAllPlanes[ *it ];
+      mps.getLikelyUnitNormal( nmp ); 
+      double coef = coefs[ i++ ];
+      n[ 0 ] += coef * nmp[ 0 ];
+      n[ 1 ] += coef * nmp[ 1 ];
+      n[ 2 ] += coef * nmp[ 2 ];
+    }
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+template <typename Vector3D>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::
+getNormalAngleStatistic( Statistic<double> & angle_stat,
+			 Vertex p,
+			 const Vector3D & est_normal ) const
+{
+  const MaximalPlaneIndexSet & mp_indices = myMapVtx2MP.find( p )->second;
+  double nmp[ 3 ];
+  angle_stat.clear();
+  for ( typename MaximalPlaneIndexSet::const_iterator 
+	  it = mp_indices.begin(), it_end = mp_indices.end();
+	it != it_end; ++it )
+    {
+      const MaximalPlaneSummary & mps = myAllPlanes[ *it ];
+      mps.getLikelyUnitNormal( nmp ); 
+      double angle = acos( est_normal[ 0 ] * nmp[ 0 ] 
+			   + est_normal[ 1 ] * nmp[ 1 ] 
+			   + est_normal[ 2 ] * nmp[ 2 ] );
+      angle_stat.addValue( angle );
+    }
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+template <typename Vector3D>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::
+getEstimatedNormal( Vector3D & n, Vertex p, AveragingMode nd ) const
+{
+  const MaximalPlaneIndexSet & mp_indices = myMapVtx2MP.find( p )->second;
+  n[ 0 ] = n[ 1 ] = n[ 2 ] = 0.0;
+  double nmp[ 3 ];
+  double sum = 0.0;
+  typename ComputedDisk::Point3i pi;
+  myDGraph->embed( p, pi.data() );
+  double px[ 3 ];
+  px[ 0 ] = pi[ 0 ];
+  px[ 1 ] = pi[ 1 ];
+  px[ 2 ] = pi[ 2 ];
+  for ( typename MaximalPlaneIndexSet::const_iterator 
+	  it = mp_indices.begin(), it_end = mp_indices.end();
+	it != it_end; ++it )
+    {
+      const MaximalPlaneSummary & mps = myAllPlanes[ *it ];
+      mps.getLikelyUnitNormal( nmp ); 
+      double coef = 1.0;
+      if ( nd != SimpleAveraging )
+	{
+	  double d = 
+	    sqrt( Mathutils::sqr( px[ 0 ] - mps.center_embedding[ 0 ] )
+		  + Mathutils::sqr( px[ 1 ] - mps.center_embedding[ 1 ] )
+		  + Mathutils::sqr( px[ 2 ] - mps.center_embedding[ 2 ] ) );
+	  if ( nd == RadiusAndDistanceAveraging )
+	    coef = mps.radius / ( d + 1.0 );
+	  else if ( nd == DistanceAveraging )
+	    coef = 1.0 / ( d + 1.0 );
+	  else if ( nd == InOutAveraging )
+	    coef = d <= mps.radius ? 1.0 : Mathutils::sqr(mps.radius / d);
+	}
+      n[ 0 ] += coef * nmp[ 0 ];
+      n[ 1 ] += coef * nmp[ 1 ];
+      n[ 2 ] += coef * nmp[ 2 ];
+      sum += coef;
+    }
+  n[ 0 ] /= (double) sum;
+  n[ 1 ] /= (double) sum;
+  n[ 2 ] /= (double) sum;
+}
+
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::
+computeMaximalPlanes( Methods & methods,
+		      bool not_in_core )
+{
+  if ( myDGraph == 0 ) return;
+  const DigitalGraph & dsg = *myDGraph;
+  Neighborhood neighborhood;
+  Set* maximal_plane = new Set( myDGraph->emptySet() );
+  std::vector<double> normalVector(3); 
+  std::set<Vertex> core_vertices;
+  NuThickDisk<DigitalGraph> disk;
+
+  double previous_radius = 1e100;
+  // Computes representatives.
+  std::cerr << "  +-- Computing all maximal planes" << std::endl;
+  Clock::startClock();
+  for ( typename WeightedVertexList::const_iterator 
+	  it = myActiveVertices.begin(), 
+	  it_end = myActiveVertices.end();
+	it != it_end;
+	++it )
+    {
+      Vertex vtx = it->cell;
+      MaximalPlaneIndexSet & reps = myMapVtx2MP[ vtx ];
+      // if ( reps.size() == 0 )
+      if ( ( not_in_core 
+	     && ( core_vertices.find( vtx ) == core_vertices.end() ) )
+	   || ( ! not_in_core && ( reps.size() == 0 ) ) )
+	{
+	  disk.init( dsg, vtx, myScale );
+	  disk.computeDisk( -1.0 );
+	  // Checks if everything works.
+	  if ( disk.radius() != it->weight )
+	    std::cerr << "  +-- ERROR: DIFF vtx=" << vtx
+		      << " wr=" << it->weight
+		      << " r=" << disk.radius() 
+		      << " " << disk
+		      << std::endl;
+	  if ( previous_radius < it->weight )
+	    std::cerr << "  +-- ERROR: PREVIOUS RADIUS vtx=" << vtx
+		      << " wr=" << it->weight
+		      << " prevr=" << previous_radius
+		      << std::endl;
+	  previous_radius = it->weight;
+
+	  disk.refineNormal(); //test
+	  disk.getNormal( normalVector );
+	  disk.optimizeBand();
+
+	  unsigned int size_mp = 0;
+	  unsigned int size_core = 0;
+	  Set* maximal_plane = new Set( myDGraph->emptySet() );
+	  Set* core_maximal_plane = new Set( myDGraph->emptySet() );
+	  // Computes the maximal plane and its core.
+	  disk.computeMaximalPlane( *maximal_plane, 
+				    *core_maximal_plane,
+				    core_vertices );
+	  // Add a new maximal plane to the vector of maximal planes.
+	  myAllPlanes.push_back( MaximalPlaneSummary() );
+	  MaximalPlaneSummary & mps = myAllPlanes.back();
+	  unsigned int idx_mps = myAllPlanes.size() - 1;
+	  // Compute maximal plane summary
+	  mps.init( methods, disk, *maximal_plane );
+	  reps.insert( idx_mps );
+	  // Take care of core vertices of this MP.
+	  for ( SetConstIterator
+		  it2 = core_maximal_plane->begin(),
+		  it2_end = core_maximal_plane->end();
+		it2 != it2_end;
+		++it2 )
+	    {
+	      core_vertices.insert( *it2 );
+	      ++size_core;
+	      if ( myMapVtx2CoreMP.find( *it2 ) == myMapVtx2CoreMP.end() )
+		{
+		  myMapVtx2CoreMP[ *it2 ] = idx_mps;
+		}
+	      else
+		{
+		  std::cerr << "[TangentialCover::computeMaximalPlanes] Error: vertex " << *it2 << " is already in the core of MP " << idx_mps << std::endl; 
+		}
+	    }
+	  // JOL
+	  // if ( exact ) disk.computeExactMaximalPlane( *maximal_plane );
+	  // else         disk.computeMaximalPlane( *maximal_plane );
+	  
+	  for ( SetConstIterator
+		  it2 = maximal_plane->begin(), it2_end = maximal_plane->end();
+		it2 != it2_end;
+		++it2 )
+	    {
+	      Vertex vtx2 = *it2;
+	      MaximalPlaneIndexSet & reps2 = myMapVtx2MP[ vtx2 ];
+	      reps2.insert( idx_mps );
+	      ++size_mp;
+	    } // end loop on extension of vtx.
+	  delete maximal_plane;
+	  delete core_maximal_plane;
+	  std::cerr << "    +-- vtx=" << vtx << " r=" << disk.radius()
+		    << " #MP=" << size_mp
+		    << " #CORE=" << size_core
+		    << " N=(" << normalVector[ 0 ]
+		    << ", " << normalVector[ 1 ]
+		    << ", " << normalVector[ 2 ]
+		    << ")" << std::endl;
+	  
+	  
+	} // end already has representative
+    } // end loop on all vertices
+  std::cerr << "  -- " << myAllPlanes.size() << " mps." << std:: endl;
+
+  std::cerr << "  -- Check active vertices." << std::endl;
+  unsigned int nb_ok = 0;
+  for ( typename WeightedVertexList::const_iterator 
+	  it = myActiveVertices.begin(), 
+	  it_end = myActiveVertices.end();
+	it != it_end;
+	++it )
+    {
+      Vertex vtx = it->cell;
+      MaximalPlaneIndexSet & reps = myMapVtx2MP[ vtx ];
+      if ( reps.size() != 0 ) ++nb_ok;
+    }
+  std::cerr << "    " << nb_ok << "/" << myActiveVertices.size() << std::endl;
+
+  std::cerr << "  -- Associating maximal planes to all vertices." << std::endl;
+  // Some vertices may not be covered. We use the mapping inactive ->
+  // active to find their representatives planes.
+  Set* all_vertices = new Set( myDGraph->wholeSet() );
+  for ( typename Set::const_iterator it = all_vertices->begin(),
+	  it_end = all_vertices->end();
+	it != it_end; ++it )
+    {
+      Vertex vtx = *it;
+      typename MapVertexToMaximalPlanes::iterator it_vtx2mp = 
+	myMapVtx2MP.find( vtx );
+      if ( it_vtx2mp == myMapVtx2MP.end() )
+	{ // this vertex has no representative yet.
+	  typename MapVertexToVertexSet::const_iterator it_vtx2actives = 
+	    myVtx2Actives.find( vtx );
+	  if ( it_vtx2actives == myVtx2Actives.end() )
+	    std::cerr << "[TangentialCover<TDigitalGraph>::computeMaximalPlanes]"
+		      << " Error: uncovered vertex has no active vertex."
+		      << std::endl;
+	  else
+	    {
+	      const VertexSet & active_vtxs = it_vtx2actives->second;
+	      for ( typename VertexSet::const_iterator 
+		      its = active_vtxs.begin(), its_end = active_vtxs.end();
+		    its != its_end; ++its )
+		{
+		  Vertex active_vtx = *its;
+		  typename MapVertexToMaximalPlanes::iterator it_active2mp = 
+		    myMapVtx2MP.find( active_vtx );
+		  if ( it_active2mp == myMapVtx2MP.end() )
+		    std::cerr << "[TangentialCover<TDigitalGraph>::computeMaximalPlanes]"
+			      << " Error: active vertex has no maximal plane."
+			      << std::endl;
+		  else
+		    {
+		      // Sets the maximal planes of vtx to be the maximal planes
+		      // of its active vertex.
+		      myMapVtx2MP[ vtx ].insert( it_active2mp->second.begin(), 
+						 it_active2mp->second.end() );
+		    }
+		} // end loop on active vertices of vertex.
+	    }
+	}
+    }
+	  
+  delete all_vertices;
+  delete maximal_plane;
+  
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::
+computeMaximalPlanes( Methods & methods,
+		      bool not_in_core, 
+		      std::map<Vertex,double> & map_vtx2radius )
+{
+  if ( myDGraph == 0 ) return;
+  const DigitalGraph & dsg = *myDGraph;
+  Neighborhood neighborhood;
+  Set* maximal_plane = new Set( myDGraph->emptySet() );
+  std::vector<double> normalVector(3); 
+  std::set<Vertex> core_vertices;
+  NuThickDisk<DigitalGraph> disk;
+
+  double previous_radius = 1e100;
+  // Computes representatives.
+  std::cerr << "  +-- Computing all maximal planes" << std::endl;
+  Clock::startClock();
+  for ( typename WeightedVertexList::const_iterator 
+	  it = myActiveVertices.begin(), 
+	  it_end = myActiveVertices.end();
+	it != it_end;
+	++it )
+    {
+      Vertex vtx = it->cell;
+      MaximalPlaneIndexSet & reps = myMapVtx2MP[ vtx ];
+      // if ( reps.size() == 0 )
+      if ( ( not_in_core 
+	     && ( core_vertices.find( vtx ) == core_vertices.end() ) )
+	   || ( ! not_in_core && ( reps.size() == 0 ) ) )
+	{
+	  disk.init( dsg, vtx, myScale );
+	  disk.computeDisk( -1.0 );
+	  // Checks if everything works.
+	  if ( disk.radius() != it->weight )
+	    std::cerr << "  +-- ERROR: DIFF vtx=" << vtx
+		      << " wr=" << it->weight
+		      << " r=" << disk.radius() 
+		      << " " << disk
+		      << std::endl;
+	  if ( previous_radius < it->weight )
+	    std::cerr << "  +-- ERROR: PREVIOUS RADIUS vtx=" << vtx
+		      << " wr=" << it->weight
+		      << " prevr=" << previous_radius
+		      << std::endl;
+	  previous_radius = it->weight;
+
+	  disk.refineNormal(); //test
+	  disk.getNormal( normalVector );
+	  disk.optimizeBand();
+
+	  unsigned int size_mp = 0;
+	  unsigned int size_core = 0;
+	  Set* maximal_plane = new Set( myDGraph->emptySet() );
+	  Set* core_maximal_plane = new Set( myDGraph->emptySet() );
+	  // Computes the maximal plane and its core.
+	  disk.computeMaximalPlane( *maximal_plane, 
+				    *core_maximal_plane,
+				    core_vertices, map_vtx2radius );
+	  // Add a new maximal plane to the vector of maximal planes.
+	  myAllPlanes.push_back( MaximalPlaneSummary() );
+	  MaximalPlaneSummary & mps = myAllPlanes.back();
+	  unsigned int idx_mps = myAllPlanes.size() - 1;
+	  // Compute maximal plane summary
+	  mps.init( methods, disk, *maximal_plane );
+	  reps.insert( idx_mps );
+	  // Take care of core vertices of this MP.
+	  for ( SetConstIterator
+		  it2 = core_maximal_plane->begin(),
+		  it2_end = core_maximal_plane->end();
+		it2 != it2_end;
+		++it2 )
+	    {
+	      core_vertices.insert( *it2 );
+	      ++size_core;
+	      if ( myMapVtx2CoreMP.find( *it2 ) == myMapVtx2CoreMP.end() )
+		{
+		  myMapVtx2CoreMP[ *it2 ] = idx_mps;
+		}
+	      else
+		{
+		  std::cerr << "[TangentialCover::computeMaximalPlanes] Error: vertex " << *it2 << " is already in the core of MP " << idx_mps << std::endl; 
+		}
+	    }
+	  // JOL
+	  // if ( exact ) disk.computeExactMaximalPlane( *maximal_plane );
+	  // else         disk.computeMaximalPlane( *maximal_plane );
+	  
+	  for ( SetConstIterator
+		  it2 = maximal_plane->begin(), it2_end = maximal_plane->end();
+		it2 != it2_end;
+		++it2 )
+	    {
+	      Vertex vtx2 = *it2;
+	      MaximalPlaneIndexSet & reps2 = myMapVtx2MP[ vtx2 ];
+	      reps2.insert( idx_mps );
+	      ++size_mp;
+	    } // end loop on extension of vtx.
+	  delete maximal_plane;
+	  delete core_maximal_plane;
+	  std::cerr << "    +-- vtx=" << vtx << " r=" << disk.radius()
+		    << " #MP=" << size_mp
+		    << " #CORE=" << size_core
+		    << " N=(" << normalVector[ 0 ]
+		    << ", " << normalVector[ 1 ]
+		    << ", " << normalVector[ 2 ]
+		    << ")" << std::endl;
+	  
+	  
+	} // end already has representative
+    } // end loop on all vertices
+  std::cerr << "  -- " << myAllPlanes.size() << " mps." << std:: endl;
+
+  std::cerr << "  -- Check active vertices." << std::endl;
+  unsigned int nb_ok = 0;
+  for ( typename WeightedVertexList::const_iterator 
+	  it = myActiveVertices.begin(), 
+	  it_end = myActiveVertices.end();
+	it != it_end;
+	++it )
+    {
+      Vertex vtx = it->cell;
+      MaximalPlaneIndexSet & reps = myMapVtx2MP[ vtx ];
+      if ( reps.size() != 0 ) ++nb_ok;
+    }
+  std::cerr << "    " << nb_ok << "/" << myActiveVertices.size() << std::endl;
+
+  std::cerr << "  -- Associating maximal planes to all vertices." << std::endl;
+  // Some vertices may not be covered. We use the mapping inactive ->
+  // active to find their representatives planes.
+  Set* all_vertices = new Set( myDGraph->wholeSet() );
+  for ( typename Set::const_iterator it = all_vertices->begin(),
+	  it_end = all_vertices->end();
+	it != it_end; ++it )
+    {
+      Vertex vtx = *it;
+      typename MapVertexToMaximalPlanes::iterator it_vtx2mp = 
+	myMapVtx2MP.find( vtx );
+      if ( it_vtx2mp == myMapVtx2MP.end() )
+	{ // this vertex has no representative yet.
+	  typename MapVertexToVertexSet::const_iterator it_vtx2actives = 
+	    myVtx2Actives.find( vtx );
+	  if ( it_vtx2actives == myVtx2Actives.end() )
+	    std::cerr << "[TangentialCover<TDigitalGraph>::computeMaximalPlanes]"
+		      << " Error: uncovered vertex has no active vertex."
+		      << std::endl;
+	  else
+	    {
+	      const VertexSet & active_vtxs = it_vtx2actives->second;
+	      for ( typename VertexSet::const_iterator 
+		      its = active_vtxs.begin(), its_end = active_vtxs.end();
+		    its != its_end; ++its )
+		{
+		  Vertex active_vtx = *its;
+		  typename MapVertexToMaximalPlanes::iterator it_active2mp = 
+		    myMapVtx2MP.find( active_vtx );
+		  if ( it_active2mp == myMapVtx2MP.end() )
+		    std::cerr << "[TangentialCover<TDigitalGraph>::computeMaximalPlanes]"
+			      << " Error: active vertex has no maximal plane."
+			      << std::endl;
+		  else
+		    {
+		      // Sets the maximal planes of vtx to be the maximal planes
+		      // of its active vertex.
+		      myMapVtx2MP[ vtx ].insert( it_active2mp->second.begin(), 
+						 it_active2mp->second.end() );
+		    }
+		} // end loop on active vertices of vertex.
+	    }
+	}
+    }
+	  
+  delete all_vertices;
+  delete maximal_plane;
+  
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::
+intersectPlanesAccordingToEmbedding()
+{
+  typedef COBAPlaneRecognitionWithSet::Point3i Point3i;
+  typedef std::map<Vertex,Point3i> MapVtx2Point;
+  typedef std::map<Point3i, MaximalPlaneIndexSet > MapPoint2PlaneIndices;
+
+  Set* all_vertices = new Set( myDGraph->wholeSet() );
+  MapVtx2Point vtx2pt;
+  MapPoint2PlaneIndices pt2planes;
+  for ( typename Set::const_iterator it = all_vertices->begin(), 
+	  it_end = all_vertices->end();
+	it != it_end;
+	++it )
+    {
+      Vertex vtx = *it;
+      Point3i p;
+      myDGraph->embed( vtx, p.data() );
+      // std::cerr << "  --- vtx=" << *it << " at " << p << std::endl;
+      vtx2pt[ vtx ] = p;
+      typename MapPoint2PlaneIndices::const_iterator it_mpi = pt2planes.find( p );
+      typename MapVertexToMaximalPlanes::const_iterator search_mp 
+	= myMapVtx2MP.find( vtx );
+      if ( search_mp == myMapVtx2MP.end() )
+	std::cerr << "Error at vtx=" << vtx << std::endl;
+      const MaximalPlaneIndexSet & vtx_reps = search_mp->second;
+
+      if ( it_mpi == pt2planes.end() )
+	{
+	  MaximalPlaneIndexSet & mpi = pt2planes[ p ];
+	  std::vector<unsigned int> output;
+	  std::back_insert_iterator< std::vector<unsigned int> > back_it( output );
+	  std::copy( vtx_reps.begin(), vtx_reps.end(), back_it );
+	  mpi.insert( output.begin(), output.end() );
+	  // std::cerr << "  - copy" << std::endl;
+	}
+      else
+	{
+	  MaximalPlaneIndexSet & mpi = pt2planes[ p ];
+	  MaximalPlaneIndexSet tmp;
+	  std::vector<unsigned int> output;
+	  std::back_insert_iterator< std::vector<unsigned int> > back_it( output );
+	  mpi.swap( tmp );
+	  std::set_intersection( tmp.begin(), tmp.end(), 
+				 vtx_reps.begin(), vtx_reps.end(),
+				 back_it );
+	  mpi.insert( output.begin(), output.end() );
+	  // std::cerr << "  - intersect" << std::endl;
+	}
+    }
+  for ( typename Set::const_iterator it = all_vertices->begin(), 
+	  it_end = all_vertices->end();
+	it != it_end;
+	++it )
+    {
+      myMapVtx2MP[ *it ] = pt2planes[ vtx2pt[ *it ] ];
+    }
+
+  delete all_vertices;
+}
+
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+void
+ImaGene::TangentialCover<TDigitalGraph>::
+selfDisplay( std::ostream& that_stream ) const
+{
+  that_stream << "[TangentialCover]";
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph>
+inline
+bool
+ImaGene::TangentialCover<TDigitalGraph>::
+OK() const
+{
+  return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of inline functions and external operators                 //
+
+/**
+ * Overloads 'operator<<' for displaying objects of class 'TangentialCover'.
+ * @param that_stream the output stream where the object is written.
+ * @param that_object_to_display the object of class 'TangentialCover' to write.
+ * @return the output stream after the writing.
+ */
+template <typename TDigitalGraph>
+inline
+std::ostream&
+ImaGene::operator<<( std::ostream & that_stream, 
+		     const TangentialCover<TDigitalGraph> & that_object_to_display )
+{
+  that_object_to_display.selfDisplay( that_stream );
+  return that_stream;
+}
+
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////
+
+

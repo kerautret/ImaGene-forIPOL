@@ -1,0 +1,496 @@
+//////////////////////////////////////////////////////////////////////////////
+//                                                                          //
+// File name : IsotropicExpander.ih
+//
+// Creation : 2011/01/20
+//
+// Version : 2011/01/20
+//
+// Author : JOL
+//
+// Summary : Implementation of inline methods defined in IsotropicExpander.h 
+//
+// History :
+//	2011/01/20 : ?Name? : ?What?
+//
+// Rcs Id : "@(#)class IsotropicExpander declaration."
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// IMPLEMENTATION of inline methods.
+///////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+#include <cstdlib>
+#include <cmath>
+#include <iostream>
+#include "ImaGene/mathutils/Mathutils.h"
+//////////////////////////////////////////////////////////////////////////////
+
+#if defined(NO_DEBUG)
+#define ASSERT_IsotropicExpander(x)
+#define DEBUGCMD_IsotropicExpander(x)
+#else //defined(NO_DEBUG)
+#define ASSERT_IsotropicExpander(x) if(!(x)) \
+    { std::cerr << "Assertion failed : (" << #x << ')' << std::endl \
+    << "In file : " << __FILE__ << " at line #" << __LINE__ << std::endl \
+    << "Compiled the " << __DATE__ << " at " << __TIME__ << std::endl; abort();}
+#define DEBUGCMD_IsotropicExpander(x) x
+#endif // else defined(NO_DEBUG)
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of inline methods                                          //
+
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::IsotropicExpander
+()
+  : myDGraph( 0 ), myDistance( 0 ), myMark( 0 ), myPt( 0 ), myPt2( 0 ) 
+    //,
+    // myValidatedSet( 0 ), 
+    // mySetToValidate( 0 )
+{
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::~IsotropicExpander
+()
+{
+  if ( myMark != 0 ) delete myMark;
+  // if ( mySetToValidate != 0 ) delete mySetToValidate;
+  // if ( myValidatedSet != 0 ) delete myValidatedSet;
+  if ( myPt != 0 ) delete[] myPt;
+  if ( myPt2 != 0 ) delete[] myPt2;
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::IsotropicExpander
+( const IsotropicExpander & other )
+  : myDGraph( other.myDGraph ), myDistance( other.myDistance ),
+    myQueue( other.myQueue ), myVtx( other.myVtx )
+{
+  if ( myDGraph != 0 )
+    {
+      // myValidatedSet = new Set( *other.myValidatedSet );
+      // mySetToValidate = new Set( *other.mySetToValidate );
+      myMark = new Set( *other.myMark );
+      myPt = new int[ myDGraph->dim() ];
+      for ( unsigned int i = 0; i < myDGraph->dim(); ++i )
+	myPt[ i ] = other.myPt[ i ];
+      myPt2 = new int[ myDGraph->dim() ];
+      // no need to copy Pt2 which is only used for intermediate computations.
+    }
+  else
+    {
+      // mySetToValidate = 0;
+      // myValidatedSet = 0;
+      myMark = 0;
+      myPt = 0;
+      myPt2 = 0;
+    }
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance> & 
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::operator=
+( const IsotropicExpander & other )
+{
+  if ( this != &other )
+    {
+      myDGraph = other.myDGraph;
+      myDistance = other.myDistance;
+      myQueue = other.myQueue;
+      myVtx = other.myVtx;
+      if ( myDGraph != 0 )
+	{
+	  // myValidatedSet = new Set( *other.myValidatedSet);
+	  // mySetToValidate = new Set (*other.mySetToValidate);
+	  
+	  myMark = new Set( *other.myMark );
+	  myPt = new int[ myDGraph->dim() ];
+	  for ( unsigned int i = 0; i < myDGraph->dim(); ++i )
+	    myPt[ i ] = other.myPt[ i ];
+	  myPt2 = new int[ myDGraph->dim() ];
+	  // no need to copy Pt2 which is only used for intermediate computations.
+	}
+      else
+	{
+	  // mySetToValidate = 0;
+	  // myValidatedSet = 0;
+	  myMark = 0;
+	  myPt = 0;
+	  myPt2 = 0;
+	}
+    }
+  return *this;
+}
+
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+void
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::clear
+()
+{
+  myQueue.clear();
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+void 
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::init
+( const DigitalGraph & dgraph, 
+  const Vertex & p,
+  const DigitalDistance & distance )
+{
+  myDGraph = &dgraph;
+  myDistance = &distance;
+  if ( myMark != 0 ) *myMark = myDGraph->emptySet();
+  else myMark = new Set( myDGraph->emptySet() );
+  
+  // if ( mySetToValidate != 0 ) *mySetToValidate = myDGraph->emptySet();
+  // else mySetToValidate = new Set( myDGraph->emptySet() );
+
+  // if ( myValidatedSet != 0 ) *myValidatedSet = myDGraph->emptySet();
+  // else myValidatedSet = new Set( myDGraph->emptySet() );
+
+  myVtx = p;
+  myQueue = PriorityQueue();
+  if ( myPt != 0 ) delete[] myPt;
+  myPt = new int[ myDGraph->dim() ];
+  if ( myPt2 != 0 ) delete[] myPt2;
+  myPt2 = new int[ myDGraph->dim() ];
+  myDGraph->embed( myVtx, myPt );
+  myQueue.push( WeightedVertex( myVtx, 0.0 ) );
+  (*myMark) += myVtx;
+  // (*myValidatedSet) += myVtx;
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+void 
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::reinit
+( const Vertex & p )
+{
+  // ASSERT_IsotropicExpander( ( myDistance != 0 )
+  // 			    && ( myDistance->distance( myP, p ) < next().weight ) );
+  std::deque<Vertex> vtx_list;
+  while ( ! myQueue.empty() )
+    {
+      vtx_list.push_back( myQueue.top().cell );
+      myQueue.pop();
+    }
+  myVtx = p;
+  myDGraph->embed( myVtx, myPt );
+  while ( ! vtx_list.empty() )
+    {
+      myDGraph->embed( vtx_list.front(), myPt2 );
+      double d = myDistance->distance( myPt, myPt2 );
+      myQueue.push( WeightedVertex( vtx_list.front(), d ) );
+      vtx_list.pop_front();
+    }
+}
+
+//-----------------------------------------------------------------------------
+inline
+double 
+ImaGene::EuclideanDigitalDistance::distance
+( const int* p1, const int* p2 ) const
+{
+  return std::sqrt( squaredDistance( p1, p2 ) );
+}
+//-----------------------------------------------------------------------------
+inline
+double 
+ImaGene::EuclideanDigitalDistance::squaredDistance
+( const int* p1, const int* p2 ) const
+{
+  double d = Mathutils::sqr( (double) ( *p1++ - *p2++ ) );
+  for ( unsigned int i = 1; i < myDim; ++i )
+    d += Mathutils::sqr( (double) ( *p1++ - *p2++ ) );
+  return d;
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+const typename ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::Set & 
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::exploredVertices
+() const
+{
+  return *myMark;
+}
+//-----------------------------------------------------------------------------
+// template <typename TDigitalGraph, typename TDigitalDistance >
+// inline
+// const typename ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::Set  
+// ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::validatedVertices
+// () const
+// {
+//   Set val = *myValidatedSet;
+//   return val;
+// }
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+typename ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::Set
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::visitedVertices() const
+{
+  Set visited = *myMark;
+  //std::cerr << "visitedVertices: bef=" << visited.size();
+  PriorityQueue q = myQueue;
+  while ( ! q.empty() )
+    {
+      visited -= (q.top().cell);
+      q.pop();
+    }
+  //std::cerr << " aft=" << visited.size() << std::endl;
+  return visited;
+}
+
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+bool 
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::finished() const
+{
+  return myQueue.empty();
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+const typename ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::WeightedVertex &
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::next() const
+{
+  return myQueue.top();
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+void
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::ignoreNext()
+{
+  ASSERT_IsotropicExpander( ! myQueue.empty() );
+  myQueue.pop();
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+void
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::expandNext()
+{
+  ASSERT_IsotropicExpander( ! myQueue.empty() );
+  WeightedVertex wvtx = myQueue.top(); 
+  Vertex vtx;
+  Neighborhood neighborhood;
+  myQueue.pop();
+  myDGraph->setProperNeighborhood( wvtx.cell, neighborhood );
+  for ( NeighborhoodConstIterator it = neighborhood.begin();
+	it != neighborhood.end();
+	++it )
+    {
+      vtx = *it;
+      if ( ! (*myMark)[ vtx ] )
+	{
+	  // (*myValidatedSet) +=vtx;
+	  (*myMark) += vtx;
+	  myDGraph->embed( vtx, myPt2 );
+	  double d1 = myDistance->distance( myPt, myPt2 );
+	  // the max guarantees that our distance function is
+	  // indeed a distance.
+	  myQueue.push( WeightedVertex( vtx, std::max( wvtx.weight, d1 ) ) );
+	}
+    }
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+void
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::expandNext
+( WeightedVertex & wvtx )
+{
+  ASSERT_IsotropicExpander( ! myQueue.empty() );
+  Vertex vtx;
+  Neighborhood neighborhood;
+  wvtx = myQueue.top(); 
+  myQueue.pop();
+  myDGraph->setProperNeighborhood( wvtx.cell, neighborhood );
+  for ( NeighborhoodConstIterator it = neighborhood.begin();
+	it != neighborhood.end();
+	++it )
+    {
+      vtx = *it;
+      if ( ! (*myMark)[ vtx ] )
+	{
+	  // (*myValidatedSet) +=vtx;
+	  (*myMark) += vtx;
+	  myDGraph->embed( vtx, myPt2 );
+	  double d1 = myDistance->distance( myPt, myPt2 );
+	  // the max guarantees that our distance function is
+	  // indeed a distance.
+	  myQueue.push( WeightedVertex( vtx, std::max( wvtx.weight, d1 ) ) );
+	}
+    }
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+template <typename ForwardConstIterator>
+inline
+void
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::pushAgain
+( ForwardConstIterator itb, ForwardConstIterator ite )
+{
+  for ( ; itb != ite; ++itb )
+    {
+      ASSERT_IsotropicExpander( (*myMark)[ itb->cell ] );
+      myQueue.push( *itb );
+    }
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+template <typename TOutputIterator>
+inline
+bool 
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::expandNoGreaterThan
+( double d, TOutputIterator itt )
+{
+  Neighborhood neighborhood;
+  Vertex vtx;
+  WeightedVertex wvtx;
+  while( ! myQueue.empty() )
+    {
+      wvtx = myQueue.top(); 
+      //extract a surfel
+      if ( wvtx.weight > d ) break;
+      myQueue.pop();
+      *itt++ = wvtx;
+      myDGraph->setProperNeighborhood( wvtx.cell, neighborhood );
+      for ( NeighborhoodConstIterator it = neighborhood.begin();
+	    it != neighborhood.end();
+	    ++it )
+	{
+	  vtx = *it;
+	  if ( ! (*myMark)[ vtx ] )
+	    {
+	      // (*mySetToValidate) +=vtx;
+	      (*myMark) += vtx;
+	      myDGraph->embed( vtx, myPt2 );
+	      double d1 = myDistance->distance( myPt, myPt2 );
+	      // the max guarantees that our distance function is
+	      // indeed a distance.
+	      myQueue.push( WeightedVertex( vtx, std::max( d, d1 ) ) );
+	    }
+	}
+    }
+  return ! myQueue.empty();
+}
+//-----------------------------------------------------------------------------
+template <typename TDigitalGraph, typename TDigitalDistance >
+template <typename TOutputIterator>
+inline
+bool
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::expandSmallerThan
+( double d, TOutputIterator itt )
+{
+  Neighborhood neighborhood;
+  Vertex vtx;
+  WeightedVertex wvtx;
+  while( ! myQueue.empty() )
+    {
+      wvtx = myQueue.top(); 
+      //extract a surfel
+      if ( wvtx.weight >= d ) break;
+      myQueue.pop();
+      *itt++ = wvtx;
+      myDGraph->setProperNeighborhood( wvtx.cell, neighborhood );
+      for ( NeighborhoodConstIterator it = neighborhood.begin();
+	    it != neighborhood.end();
+	    ++it )
+	{
+	  vtx = *it;
+	  if ( ! (*myMark)[ vtx ] )
+	    {
+	      // (*mySetToValidate) +=vtx;
+	      (*myMark) += vtx;
+	      myDGraph->embed( vtx, myPt2 );
+	      double d1 = myDistance->distance( myPt, myPt2 );
+	      // the max guarantees that our distance function is
+	      // indeed a distance.
+	      myQueue.push( WeightedVertex( vtx, std::max( d, d1 ) ) );
+	    }
+	}
+    }
+  return ! myQueue.empty();
+}
+//-----------------------------------------------------------------------------
+// template <typename TDigitalGraph, typename TDigitalDistance >
+// inline
+// void
+// ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::valideExpandCurrentSet()
+// {
+  
+//   for(typename Set::iterator it = mySetToValidate->begin(); it!= mySetToValidate->end(); ++it){
+//     Vertex vtx = *it;
+//     (*mySetToValidate) -= vtx;
+//     (*myValidatedSet) += vtx;
+//   }
+
+// }
+
+
+
+/**
+ * Writes/Displays the object on an output stream.
+ * @param that_stream the output stream where the object is written.
+ */
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+void 
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::selfDisplay
+( std::ostream& that_stream ) const
+{
+  that_stream << "[IsotropicExpander]";
+}
+
+/**
+ * Checks the validity/consistency of the object.
+ * @return 'true' if the object is valid, 'false' otherwise.
+ */
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+bool 
+ImaGene::IsotropicExpander<TDigitalGraph,TDigitalDistance>::OK() const
+{
+  return true;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of inline functions and external operators                 //
+
+/**
+ * Overloads 'operator<<' for displaying objects of class 'IsotropicExpander'.
+ * @param that_stream the output stream where the object is written.
+ * @param that_object_to_display the object of class 'IsotropicExpander' to write.
+ * @return the output stream after the writing.
+ */
+template <typename TDigitalGraph, typename TDigitalDistance >
+inline
+std::ostream&
+ImaGene::operator<<( std::ostream & that_stream, 
+		     const IsotropicExpander<TDigitalGraph,TDigitalDistance> &
+		     that_object_to_display )
+{
+  that_object_to_display.selfDisplay( that_stream );
+  return that_stream;
+}
+
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////
+
+

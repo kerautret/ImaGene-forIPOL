@@ -1,0 +1,219 @@
+//////////////////////////////////////////////////////////////////////////////
+//                                                                          //
+// File name : CompletedDigitalSurfaceGraph.ih
+//
+// Creation : 2011/01/13
+//
+// Version : 2011/01/13
+//
+// Author : JOL
+//
+// Summary : Implementation of inline methods defined in CompletedDigitalSurfaceGraph.h 
+//
+// History :
+//	2011/01/13 : ?Name? : ?What?
+//
+// Rcs Id : "@(#)class CompletedDigitalSurfaceGraph declaration."
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// IMPLEMENTATION of inline methods.
+///////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+#include <cstdlib>
+#include <iostream>
+#include "ImaGene/digitalnD/DigitalSurfaceUmbrellaComputer.h"
+//////////////////////////////////////////////////////////////////////////////
+
+#if defined(NO_DEBUG)
+#define ASSERT_CompletedDigitalSurfaceGraph(x)
+#define DEBUGCMD_CompletedDigitalSurfaceGraph(x)
+#else //defined(NO_DEBUG)
+#define ASSERT_CompletedDigitalSurfaceGraph(x) if(!(x)) \
+    { std::cerr << "Assertion failed : (" << #x << ')' << std::endl \
+    << "In file : " << __FILE__ << " at line #" << __LINE__ << std::endl \
+    << "Compiled the " << __DATE__ << " at " << __TIME__ << std::endl; abort();}
+#define DEBUGCMD_CompletedDigitalSurfaceGraph(x) x
+#endif // else defined(NO_DEBUG)
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of inline methods                                          //
+
+/**
+ * @return the empty set of vertices (subset of this graph).
+ */
+inline
+ImaGene::CompletedDigitalSurfaceGraph::Set
+ImaGene::CompletedDigitalSurfaceGraph::emptySet() const
+{
+  return KnRCellSet::create( mySpace, mySpace.dim() - 1, true, 0 );
+}
+
+/**
+ * @return the whole set of vertices (subset of this graph).
+ */
+inline
+ImaGene::CompletedDigitalSurfaceGraph::Set
+ImaGene::CompletedDigitalSurfaceGraph::wholeSet() const
+{
+  return mySurface;
+}
+
+/**
+ * Sets the neighborhood of [p] in [n].
+ *
+ * @param p any vertex of this graph.
+ * @param n (modified) contains after the neighborhood of p.
+ */
+inline
+void 
+ImaGene::CompletedDigitalSurfaceGraph::setNeighborhood
+( const Vertex & p, Neighborhood & n ) const
+{
+  Vertex s;
+  n.clear();
+  n.setCenter( p );
+  myTracker->move( p );
+  unsigned int i = mySpace.sorthDir( p );
+  unsigned int i1 = ( i + 1 ) % 3;
+  unsigned int i2 = ( i1 + 1 ) % 3;
+  n.push_back( p );
+  std::set<Vertex> neighbors;
+
+  DigitalSurfaceUmbrellaComputer umbrella;
+  umbrella.init( *myTracker );
+  umbrella.setPivot( i2, true, i1 );
+  while( umbrella.next() && ( ( s = umbrella.face() ) != p ) )
+    neighbors.insert( s );
+  umbrella.init( *myTracker );
+  umbrella.setPivot( i1, true, i2 );
+  while( umbrella.next() && ( ( s = umbrella.face() ) != p ) )
+    neighbors.insert( s );
+  umbrella.init( *myTracker );
+  umbrella.setPivot( i2, false, i1 );
+  while( umbrella.next() && ( ( s = umbrella.face() ) != p ) )
+    neighbors.insert( s );
+  umbrella.init( *myTracker );
+  umbrella.setPivot( i1, false, i2 );
+  while( umbrella.next() && ( ( s = umbrella.face() ) != p ) )
+    neighbors.insert( s );
+  neighbors.insert( p );
+  for ( std::set<Vertex>::const_iterator 
+	  it = neighbors.begin(), it_end = neighbors.end();
+	it != it_end; ++it )
+    n.push_back( *it );
+}
+
+/**
+ * Sets the proper neighborhood of [p] in [n].
+ *
+ * @param p any vertex of this graph.
+ * @param n (modified) contains after the proper neighborhood of p.
+ */
+inline
+void 
+ImaGene::CompletedDigitalSurfaceGraph::setProperNeighborhood
+( const Vertex & p, Neighborhood & n ) const
+{
+  Vertex s;
+  n.clear();
+  n.setCenter( p );
+  myTracker->move( p );
+  unsigned int i = mySpace.sorthDir( p );
+  unsigned int i1 = ( i + 1 ) % 3;
+  unsigned int i2 = ( i1 + 1 ) % 3;
+  n.push_back( p );
+  std::set<Vertex> neighbors;
+
+  DigitalSurfaceUmbrellaComputer umbrella;
+  umbrella.init( *myTracker );
+  umbrella.setPivot( i2, true, i1 );
+  while( umbrella.next() && ( ( s = umbrella.face() ) != p ) )
+    neighbors.insert( s );
+  umbrella.init( *myTracker );
+  umbrella.setPivot( i1, true, i2 );
+  while( umbrella.next() && ( ( s = umbrella.face() ) != p ) )
+    neighbors.insert( s );
+  umbrella.init( *myTracker );
+  umbrella.setPivot( i2, false, i1 );
+  while( umbrella.next() && ( ( s = umbrella.face() ) != p ) )
+    neighbors.insert( s );
+  umbrella.init( *myTracker );
+  umbrella.setPivot( i1, false, i2 );
+  while( umbrella.next() && ( ( s = umbrella.face() ) != p ) )
+    neighbors.insert( s );
+  for ( std::set<Vertex>::const_iterator 
+	  it = neighbors.begin(), it_end = neighbors.end();
+	it != it_end; ++it )
+    n.push_back( *it );
+}
+
+/**
+ * @return the dimension of the embedding space.
+ */
+inline
+int
+ImaGene::CompletedDigitalSurfaceGraph::dim() const
+{
+  return mySpace.dim();
+}
+
+/**
+ * @return the diameter of the graph in its embedding space.
+ */
+inline
+int
+ImaGene::CompletedDigitalSurfaceGraph::diameter() const
+{
+  if ( myDiameter == 0 )
+    myDiameter = std::max( mySpace.size(0), 
+			   std::max( mySpace.size(1), mySpace.size(2) ) );
+  return myDiameter;
+}
+
+/**
+ * Embeds the vertex [p] in the digital space.
+ *
+ * @param p any vertex of this graph.
+ * @param coords (modified) the integer coordinates of the embedding of [p].
+ */
+inline
+void 
+ImaGene::CompletedDigitalSurfaceGraph::embed
+( const Vertex & p, int* coords ) const
+{
+  unsigned int orth_dir = mySpace.sorthDir( p );
+  Kn_sid v = mySpace.sincident( p, orth_dir, mySpace.sdirect( p, orth_dir ) );
+  mySpace.sdecodeCoords( v, coords );
+}
+
+inline
+unsigned int 
+ImaGene::CompletedDigitalSurfaceGraph::preferredAxis( const Vertex & v ) const
+{
+  return mySpace.sorthDir( v );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of inline functions and external operators                 //
+
+/**
+ * Overloads 'operator<<' for displaying objects of class 'CompletedDigitalSurfaceGraph'.
+ * @param that_stream the output stream where the object is written.
+ * @param that_object_to_display the object of class 'CompletedDigitalSurfaceGraph' to write.
+ * @return the output stream after the writing.
+ */
+std::ostream&
+ImaGene::operator<<( std::ostream & that_stream, 
+		 const CompletedDigitalSurfaceGraph & that_object_to_display )
+{
+  that_object_to_display.selfDisplay( that_stream );
+  return that_stream;
+}
+
+//                                                                           //
+///////////////////////////////////////////////////////////////////////////////
+
+

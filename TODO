@@ -1,0 +1,137 @@
+JOL+XP 13/7/2011:
+Should write an init from interpixel freemanchain by adapting the
+CMLP computation to directly output a GridCurve.
+
+JOL+XP 13/7/2011:
+problem in void
+ImaGene::GridCurve::initFromReversiblePolygonalRepresentation
+( const ReversiblePolygonalRepresentation & rpr )
+Do not construct the correct GridCurve from a complex RPR (here, the one
+produced by the CMLP of flower-noise.fc).
+Should correct it.
+
+
+TODO5. (Medium,Medium). classe Vector (double et float)
+TODO7. (Low,Medium). type ulint (long int)
+TODO8. (High,Long). classe KnSubspace
+TODO9. (Low,Short), classe BelAdjacency::bel_iterator
+TODO10. (Medium,Medium). Transformer BelAdjacency en SurfelAdjacency
+TODO11. (Medium,Medium) classes SurfelSet et OrientedSurfelSet derivant de DigitalSurface
+TODO12. (Low,Medium) classe DigitalSurface, bord
+TODO13. (Low,Medium) classe DigitalSurface, composante connexe
+TODO16. (Medium,Long). Serialisation des classes (KnSpace,Kn_rSet,etc).
+TODO17. (High,Long). Batterie de programmes tests/exemples bien documentes
+TODO18. (High,Long). Bibliotheque de visualisation 3D des objets.
+
+TODO19. (High,Medium). Enlever les float (notamment dans Shapes). Mettre double partout.
+TODO20. (Medium,Long). Proposer une version "integer-only" avec rationnels plutot que des nombres a virgule flottante.
+TODO21. (High,Long). Mettre en place un systeme de tests unitaires et tests de non-regression.
+TODO22. (High,Long). Mettre en place une version 64 bits.
+TODO23. (High,Medium). Rajouter I/O sur ensembles de cellules en dimension quelconque.
+
+(JOL 2004/01/09) TODO1. (High,Short). classe Contour4Iterator 
+(JOL 2004/01/14) TODO2. (High,Medium). Faire un namespace 'digitalnD' et un 'timetools'. 
+(JOL 2004/01/09) TODO3. (High,Short). remplacer classe Contour4IteratorFactory par DigitalSurface
+(JOL 2004/01/09) TODO4. (Low,Short). classe DigitalSurfaceGeometry
+(JOL 2004/01/13) TODO6. (Medium,Medium). class KnSpace
+(JOL 2004/01/13) TODO14. (High,Medium). Renommer la classe DGeometry en C4CGeometry
+(JOL 2004/01/13) TODO15. (High,Short). Enlever toute reference au KnSpace dans DGeometry
+(JOL 2004/01/15) TODO19. (Medium,Short). Homogeneisation des noms Kn_rSet Kn_rVector
+
+
+
+
+
+
+TODO5. (Medium,Medium). classe Vector
+
+La classe linalg::Vector devrait etre etoffee par les operateurs
+usuels. De plus, il faudrait tester l'influence de float->double pour
+le calcul de la courbure.
+
+(1) => rajouter les operateurs.
+    => donner un moyen de definir des vecteurs de double.
+
+
+TODO7. (Low,Medium). type ulint (long int)
+
+Il faudrait creer une classe/ un type pour representer les entiers
+tres grands qui peuvent apparaitre lorsqu'on manipule des tres grands
+espaces. Par exemple, la methode 'KnsPace::trueSize()' devrait
+renvoyer un 'ulint'. Si Kn_uid passe a 64 bits, ulint est necessaire.
+
+Pour le moment, uint est utilise dans tous les cas (32 bits sur les
+machines actuelles). En fait, uint devrait plutot representer les
+petits nombres et rester a 32 bits.
+
+
+TODO8. (High,Long). classe KnSubspace
+
+Il devient important de creer la notion de sous-espace, afin
+d'optimiser de nombreux traitements.
+
+
+TODO9. (Low,Short), classe BelAdjacency::bel_iterator
+
+Il faudrait l'epurer de certaines choses inutiles comme 
+
+- la notion de tangentDir, obsolete
+- certaines methodes : isOrthDirPos..., getDelta. A la limite les mettre static.
+- les precalculs qui memorisent orth_dir, orth_direct, etc. Verifier
+que ca ne perd pas de temps.
+
+
+TODO10. (Medium,Medium). Transformer BelAdjacency en SurfelAdjacency
+
+Permettrait de parcourir aussi les surfaces orientees ou non, pas
+forcement les bords d'objets.
+
+
+TODO11. (Medium,Medium) classes SurfelSet et OrientedSurfelSet derivant de DigitalSurface
+
+Permettrait de definir des surfaces a bord ou incompletes et d'avoir
+des mesures geometriques sur ces objets.
+
+
+TODO12. (Low,Medium) classe DigitalSurface, bord
+
+La notion de surface a bord ou sans bord devrait etre definie, par
+exemple pour pouvoir expliciter le bord sous forme d'ensemble de
+n-2-cells.
+
+
+TODO13. (Low,Medium) classe DigitalSurface, composante connexe
+
+La notion de composante connexe est aussi importante. Ceci est a
+relier aux reliations d'adjacences entre elements de surfaces
+
+=> peut aussi etre realisee de maniere exterieure a la classe.
+
+
+TODO16. (Medium,Long). Serialisation des classes (KnSpace,Kn_rSet,etc).
+
+Sera utile pour toute sauvegarde/chargement. Bien qu'une serialisation type
+XML serait une bonne chose (pour observer les resultats avec d'autres outils),
+ce n'est pas la plus economique.
+
+=> (1) Il faut des constructeurs par defaut pour les classes KnSpace,
+Kn_rSet et autres. Ces classes doivent pouvoir etre instancies dans un
+etat non valide.
+
+=> (2) Si sauvegarde classique, il faut une classe pour gerer little/big endian ainsi que les problemes 32 bits/ 64 bits.
+
+=> (3) Si XML, il faut un codeur/decodeur ASCII (par exemple, 8 bits sont codes sur 2 caracteres hexadecimaux).
+
+
+TODO17. (High,Long). Batterie de programmes tests/exemples bien documentes
+
+Cela permettrait a la fois de faire de facon efficace les tests de non
+regression ainsi que d'avoir des exemples simples d'illustration.
+
+
+TODO18. (High,Long). Bibliotheque de visualisation 3D des objets.
+
+Dans un premier temps, utiliser OpenInventor. Ensuite, voir pour un
+visualiseur par lancer de rayons.
+
+

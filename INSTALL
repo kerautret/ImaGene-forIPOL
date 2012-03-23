@@ -1,0 +1,81 @@
+-------------------------------------------------------------------------------
+ImaGene version 1.6.0
+        (c) Jacques-Olivier Lachaud
+-------------------------------------------------------------------------------
+
+Should work on Linux and MacOSX platforms.
+
+I) Installation quick way (separate build, preferred way)
+------------------------------------------
+
+>	tar xvfz ImaGene-1.6.0-Sources.tgz
+>	cd ImaGene-1.6.0-Sources
+>	mkdir build 
+>	cd build 
+>	cmake ..
+>	make
+>	make install
+
+Once installed, you can remove everything in directory 'build' with
+
+>       rm -rf build
+
+
+II) Installation quick way (in-source build)
+--------------------------------------------
+
+>	tar xvfz ImaGene-1.6.0-Sources.tgz
+>	cd ImaGene-1.6.0-Sources
+>	cmake .
+>	make install
+
+
+III) Installation (details)
+---------------------------
+
+1) Requires cmake (version 2.6). Tested on Linux and MacOSX. Should
+   work on all Unix/BSD platforms.
+
+2) After unpacking the sources, go into the directory
+
+>	cd ImaGene-1.6.0-Sources
+
+3) Then create a separate directory for the build.
+
+>  	mkdir build
+>	cd build
+
+
+4) Then call 'cmake' within directory 'build', either as
+
+>	cmake ..
+
+Or, if you wish debug version.
+
+>	cmake -DCMAKE_BUILD_TYPE:STRING=Debug ..
+
+If you wish to change install directory to MYDIR, you may call 'cmake' with
+
+>	cmake -DINSTALL_PREFIX:STRING=MYDIR ..
+
+4) Then, compile everything with
+
+>	make
+
+5) You may then install ImaGene with
+
+>	make install
+
+By default, it is in /usr/local subdirectories. You may need
+administrator privileges to perform this task. Just type
+
+>	sudo make install
+
+6) To remove all files created for building everything, you may just
+remove the directory 'build' for instance with
+
+>      cd ..
+>      rm -rf build
+
+
+
