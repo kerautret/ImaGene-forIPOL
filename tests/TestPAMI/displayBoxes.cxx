@@ -134,11 +134,6 @@ main( int argc, char** argv )
   uint mscales_min_size = args.getOption( "-meaningfulScale" )->getIntValue( 0 );
   double mscales_max_slope = args.getOption( "-meaningfulScale" )->getDoubleValue( 1 );
     
-  int n = args.getOption( "-standardScale" )->getIntValue( 0 );    
-  double alpha = args.getOption( "-standardScale" )->getDoubleValue( 1 );    
-  
-  
-    
 
   
   // -------------------------------------------------------------------------
