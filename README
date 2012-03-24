@@ -1,16 +1,6 @@
-Some examples :
-----------------
+This version of ImaGene is reduced version without the boost and gmp
+dependencies. The full version is available here:
+http://gforge.liris.cnrs.fr/projects/imagene
 
-# Genere le contour et en fait une image PGM
-./bin/gencontour -x 64 -y 64 -flower 20 5 3 2.8 -dPGM > toto.pgm
-# Genere le contour et en fait un code de Freeman
-./bin/gencontour -x 64 -y 64 -flower 20 5 3 2.8 -dFC > toto.fc
-# Replace un code de Freeman
-cat toto.fc | ./bin/freeman2freeman -ul 2 2 > toto2.fc
-# Prend un code de Freeman et en fait une image PGM
-cat toto2.fc | ./bin/freeman2pgm -x 64 -y 64 > toto2.pgm
-# Prend un code de Freeman et genere un fichier XFIG avec les segments max.
-cat toto2.fc | ./bin/freeman2fig -x 64 -y 64 -header -unitcm 0.5 -header -contour 0 3 -pointel_grid 0 1 -view 0 0 35 20 -pixels 1 0 -ms 0 0 -ms_display COLOR 58 0.5 > toto2.fig
-# Admirez ;-)
-fig2dev -L eps toto2.fig toto2.eps
+
 

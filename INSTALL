@@ -8,8 +8,8 @@ Should work on Linux and MacOSX platforms.
 I) Installation quick way (separate build, preferred way)
 ------------------------------------------
 
->	tar xvfz ImaGene-1.6.0-Sources.tgz
->	cd ImaGene-1.6.0-Sources
+>	tar xvfz ImaGeneNoDepSources.tgz
+>	cd ImaGeneNoDepSources
 >	mkdir build 
 >	cd build 
 >	cmake ..
@@ -24,8 +24,8 @@ Once installed, you can remove everything in directory 'build' with
 II) Installation quick way (in-source build)
 --------------------------------------------
 
->	tar xvfz ImaGene-1.6.0-Sources.tgz
->	cd ImaGene-1.6.0-Sources
+>	tar xvfz ImaGeneNoDepSources.tgz
+>	cd ImaGeneNoDepSources
 >	cmake .
 >	make install
 
@@ -38,7 +38,7 @@ III) Installation (details)
 
 2) After unpacking the sources, go into the directory
 
->	cd ImaGene-1.6.0-Sources
+>	cd ImaGeneNoDepSources
 
 3) Then create a separate directory for the build.
 
