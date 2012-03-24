@@ -31,7 +31,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 #include <cmath>
-#include <boost/math/distributions/students_t.hpp>
+//#include <boost/math/distributions/students_t.hpp>
 #include "ImaGene/mathutils/SimpleLinearRegression.h"
 // Includes inline functions/methods if necessary.
 #if !defined(INLINE)
@@ -123,31 +123,6 @@ ImaGene::SimpleLinearRegression::computeRegression()
 
 
 
-/**
- * Given a test confidence value (1-[a]), return the expected interval
- * of value for Y, given a new [x], so that the model is still
- * linear. One may thus check if a new pair (y,x) is still in the
- * current linear model or not.
- *
- * @param x any x value.
- *
- * @param a the expected confidence value for the test (a=0.05
- * means 95% of confidence).
- *
- * @return the expected interval [min_y, max_y] such that any
- * value y within confirms the current linear model.
- */
-std::pair<double,double>
-ImaGene::SimpleLinearRegression::trustIntervalForY( double x, double a ) const
-{
-  double t = ( m_sum_x2 - 2.0 * x * m_sum_x + m_n * x * x ) / m_d;
-  double c = sqrt( estimateVariance() * ( 1 + t ) );
-  boost::math::students_t_distribution<double> T( m_n - 2 );
-  double q = boost::math::quantile( T, 1.0 - a/2.0 );
-  return make_pair( estimateY( x ) - q*c, estimateY( x ) + q*c );
-}
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Interface - public :
@@ -173,31 +148,6 @@ ImaGene::SimpleLinearRegression::OK() const
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-
-/**
- * Several tests for the class.
- */
-bool
-ImaGene::SimpleLinearRegression::test()
-{
-  SimpleLinearRegression SLR;
-  SLR.addSample( 1.0, 2.0 );
-  SLR.addSample( 2.0, 3.0 );
-  SLR.addSample( 4.0, 4.0 );
-  SLR.addSample( 5.0, 5.5 );
-  SLR.computeRegression();
-  cout << "B=[" << SLR.intercept() << " " << SLR.slope()
-       <<  "] sigma2=" << SLR.estimateVariance() << endl;
-  pair<double,double> ic;
-  ic = SLR.trustIntervalForY( 6.0, 0.2 );
-  cout << "IC_80%(6.0)=" << ic.first << " - " << ic.second << endl;
-  ic = SLR.trustIntervalForY( 6.0, 0.1 );
-  cout << "IC_90%(6.0)=" << ic.first << " - " << ic.second << endl;
-  ic = SLR.trustIntervalForY( 6.0, 0.05 );
-  cout << "IC_95%(6.0)=" << ic.first << " - " << ic.second << endl;
-  return true;
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////

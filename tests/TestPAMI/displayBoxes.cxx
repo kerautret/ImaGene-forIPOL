@@ -45,7 +45,7 @@ static const int RESOLUTION=1200;
 static int samplingSizeMax = 20;
 
 
-void  plotDetailedStandardScale (uint idx, int dec, uint n,  const  MultiscaleProfile &MP, double alpha, fstream & fstrProfiles);
+
 Vector2i getPointFromFreemanChain(const FreemanChain &fc, uint pos);
 uint estimMaxSamplingSize(FreemanChain fc);
 
@@ -83,7 +83,7 @@ main( int argc, char** argv )
   
   // def de bruit:
   args.addOption( "-meaningfulScale", "-meaningfulScale <min_size> <max_slope>: specifies parameters for defining meaningful scales: minimum size of the interval of scales and maximum slopes between consecutive samples within. default parameter minSize= 1 and minSlopes 0.0", "1", "0.0" );  
-  args.addOption( "-standardScale", "-standardScale <n> <alpha>: choose the standard scale instead of noise level and specifies the parameters for defining the linear model used in the standard scale. [n] is the minimum number of samples to fit a linear model, 1-[alpha] is the proportion of accepted linear model of the test (99%, alpha=0.01, means that 99% of all linear model with a Gaussian noise are accepted). If <n> is positive, computes the MultiscaleProfile.detailedStandardScaleMax(n,...), otherwise computes MultiscaleProfile.detailedStandardScale(-n,...). ", "3", "0.3" );    
+
  
   
   
@@ -246,15 +246,8 @@ main( int argc, char** argv )
     uint code = it.getCode();
     
     Vector2i xy( *it );
-    
-    if(args.check( "-standardScale")){
-      if ( n > 0 )
-	noiseLevel =  MP.detailedStandardScaleMax(i, n, alpha );
-      else
-	noiseLevel =  MP.detailedStandardScale(i, -n, alpha );
-    }else{
-      noiseLevel =  MP.noiseLevel(i, mscales_min_size, mscales_max_slope);
-    }    
+    noiseLevel =  MP.noiseLevel(i, mscales_min_size, mscales_max_slope);
+
     
     
     if(args.check("-affBoxesStat")){
