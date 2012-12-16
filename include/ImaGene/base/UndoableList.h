@@ -43,6 +43,8 @@ namespace ImaGene
 #ifdef DEBUG
   static int undoablelist_nb_cells = 0;
 #endif
+  
+ 
 
   /////////////////////////////////////////////////////////////////////////////
   // class UndoableList
@@ -55,9 +57,13 @@ namespace ImaGene
   template <typename NodeType>
   class UndoableList
   {
-
+   
+    
     // ----------------------- Internal types ------------------------------
   public:
+    struct _const_iterator;
+    struct _quasi_iterator;
+   
 
     /**
      * Encapsulates a node in a structure storing also pointers to the
@@ -303,7 +309,7 @@ namespace ImaGene
        * Stores the current cell pointed by the iterator.
        */
       Cell* m_current;
-
+    public:
       /**
        * Destructor. Does nothing.
        */
