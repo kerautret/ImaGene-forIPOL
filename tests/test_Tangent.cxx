@@ -648,7 +648,7 @@ public:
     
     Proxy<C4CIteratorOnBdry> it_back( dynamic_cast<C4CIteratorOnBdry*>( iter->clone()));
     Proxy<C4CIteratorOnBdry> it_fwd( dynamic_cast<C4CIteratorOnBdry*>( iter->clone()));
-				     
+    
     Vector2D a_v2d_in_win[2*wsize];
     
     int j=0;    
@@ -2203,7 +2203,7 @@ public:
     a=b=c=d=0.0;
     float dx, dy;
     dx=dy=0.0;
-    Vector2D centroids_coordinate[2*((int) size)+1];
+    Vector2D centroids_coordinate[2*size+1];
     Vector2D central_point = ks.scentroid( iter_copy->current() );
     Vector2D current_direction;
 
