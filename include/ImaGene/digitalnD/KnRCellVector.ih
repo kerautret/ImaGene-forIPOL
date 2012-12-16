@@ -241,7 +241,7 @@ template <class T>
 T& 
 KnRUCellVector<T>::operator[]( Kn_uid c )
 {
-  return rAt( index( c ) );
+  return  KnRCellVector<T>::rAt( index( c ) );
 }
 
 /**
@@ -253,7 +253,7 @@ template <class T>
 const T& 
 KnRUCellVector<T>::operator[]( Kn_uid c ) const
 {
-  return rAt( index( c ) );
+  return KnRCellVector<T>::rAt( index( c ) );
 }
 
 
