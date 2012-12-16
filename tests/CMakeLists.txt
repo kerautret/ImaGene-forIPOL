@@ -36,7 +36,7 @@ set( TEST_EXEC_FILES
 	test_MultNormales
 	test_Profiles
 	test_Measure
-	test_Tangent
+#	test_Tangent
 	test_ErrorMeasure
 	test_Extract3DCC
 	test_BlurredSegmentTgtCover
