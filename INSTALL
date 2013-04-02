@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
-ImaGene version 1.6.0
-        (c) Jacques-Olivier Lachaud
+ImaGene-forIPOL
+        (c) Jacques-Olivier Lachaud (and adapted with no dependancies by Bertrand Kerautret)
 -------------------------------------------------------------------------------
 
-Should work on Linux and MacOSX platforms.
+Should work on Linux and MacOSX platforms. (tested on Ubuntu, Debian, MacOS)
 
 I) Installation quick way (separate build, preferred way)
 ------------------------------------------
 
->	tar xvfz ImaGeneNoDepSources.tgz
->	cd ImaGeneNoDepSources
+>	git clone https://github.com/kerautret/ImaGene-forIPOL.git
+>	cd ImaGene-forIPOL
 >	mkdir build 
 >	cd build 
 >	cmake ..
@@ -24,8 +24,8 @@ Once installed, you can remove everything in directory 'build' with
 II) Installation quick way (in-source build)
 --------------------------------------------
 
->	tar xvfz ImaGeneNoDepSources.tgz
->	cd ImaGeneNoDepSources
+>	git clone https://github.com/kerautret/ImaGene-forIPOL.git
+>	cd ImaGene-forIPOL
 >	cmake .
 >	make install
 
@@ -33,12 +33,16 @@ II) Installation quick way (in-source build)
 III) Installation (details)
 ---------------------------
 
-1) Requires cmake (version 2.6). Tested on Linux and MacOSX. Should
-   work on all Unix/BSD platforms.
+1) First you can get the sources by cloning the main directory (using git program)
+
+>       git clone https://github.com/kerautret/ImaGene-forIPOL.git
+or if you have not git you can simply download the source available here:
+https://github.com/kerautret/ImaGene-forIPOL
+
 
 2) After unpacking the sources, go into the directory
 
->	cd ImaGeneNoDepSources
+>	cd ImaGene-forIPOL
 
 3) Then create a separate directory for the build.
 
