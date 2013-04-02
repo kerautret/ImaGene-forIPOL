@@ -120,6 +120,8 @@ add_subdirectory (src)
 add_subdirectory (include)
 add_subdirectory (bin)
 add_subdirectory (examples)
+add_subdirectory (demoIPOL)
+
 # add_subdirectory (digitalPlaneRecognition)
 # add_subdirectory (doc)
 
