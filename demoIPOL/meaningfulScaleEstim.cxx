@@ -88,7 +88,7 @@ main( int argc, char** argv )
   
   
   //Affichage de stats:
-  args.addOption("-affBoxesStat", "-affBoxesStat", "1.0");
+  args.addOption("-affBoxesStat", "-affBoxesStat <scale> parameter", "1.0");
   
  
   
@@ -170,6 +170,16 @@ main( int argc, char** argv )
     string name = args.getOption("-setFileNameFigure")->getValue(0);
     ofFig.open(name.c_str(), ios_base::out);
   }
+
+
+  if(args.check("-enteteXFIG")){
+    args.check("-setFileNameFigure")? ofFig : cout << "#FIG 3.2 \nLandscape \nCenter \nInches \nLetter  \n" <<agrandissementEPS<< "\nSingle \n1" 
+	  << " \n"<<RESOLUTION<<" 1" << endl;
+
+    ofFig << "#FIG 3.2 \nLandscape \nCenter \nInches \nLetter  \n" <<agrandissementEPS<< "\nSingle \n1" 
+	 << " \n"<<RESOLUTION<<" 1" << endl;
+  }
+
   if(args.check("-setFileNameNoiseLevel")){
     string name = args.getOption("-setFileNameNoiseLevel")->getValue(0);
     cerr << "name " << name <<endl;
@@ -177,11 +187,6 @@ main( int argc, char** argv )
   }
 
   
-
-  if(args.check("-enteteXFIG")){
-    args.check("-setFileNameFigure")? ofFig :cout << "#FIG 3.2 \nLandscape \nCenter \nInches \nLetter  \n" <<agrandissementEPS<< "\nSingle \n1" 
-	 << " \n"<<RESOLUTION<<" 1" << endl;
-  }
 
   
   if(args.check("-drawContourSRC")){
