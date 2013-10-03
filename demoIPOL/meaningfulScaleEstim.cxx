@@ -66,7 +66,7 @@ main( int argc, char** argv )
   // Prepare arguments.
   StandardArguments::addIOArgs( args, true, false );
   args.addOption("-setSamplingSizeMax", "-setSamplingSizeMax <max_scale>: set the maximal scale used for contour analysis ", "20" );
-  
+  args.addBooleanOption("-processAllContours", "-processAllContours: process all contours (by default process onmly the first point).");
   
   //affichage du bruit
   args.addBooleanOption("-printNoiseLevel", "-printNoiseLevel: displays noise level for each surfel.");
@@ -84,9 +84,6 @@ main( int argc, char** argv )
   // def de bruit:
   args.addOption( "-meaningfulScale", "-meaningfulScale <min_size> <max_slope>: specifies parameters for defining meaningful scales: minimum size of the interval of scales and maximum slopes between consecutive samples within. default parameter minSize= 1 and minSlopes 0.0", "1", "0.0" );  
 
- 
-  
-  
   //Affichage de stats:
   args.addOption("-affBoxesStat", "-affBoxesStat <scale> parameter", "1.0");
   
@@ -116,7 +113,7 @@ main( int argc, char** argv )
     }
 
     
-    static int    agrandissementEPS = 30;
+  static int    agrandissementEPS = 30;
 
 
 
@@ -138,14 +135,30 @@ main( int argc, char** argv )
   
   // -------------------------------------------------------------------------
   // Read Freeman chain and creates space/contour.  
-  FreemanChain fc; 
-  istream & in_str = StandardArguments::openInput( args );
-  FreemanChain::read( in_str, fc );
-  if ( ! in_str.good() )
-    {
-      cerr << "Error reading Freeman chain code." << endl;
-      return 2;
-    }
+  
+  std::vector<FreemanChain> vectFC;
+  bool containsFC=true;
+  while( containsFC){
+    FreemanChain fc; 
+    istream & in_str = StandardArguments::openInput( args );
+    FreemanChain::read( in_str, fc );
+    containsFC = in_str.good();
+
+    if ( ! in_str.good() )
+      {
+	if(vectFC.size()==0){
+	  cerr << "Error reading Freeman chain code." << endl;
+	  return 2;
+	}else{
+	  continue;
+	}
+      }
+    containsFC=containsFC && args.check("-processAllContours");
+    vectFC.push_back(fc);
+  }
+  if(args.check("-processAllContours")){
+    cerr << "Read " << vectFC.size() << " Freemanchains" << std::endl;
+  }
   
 
 
@@ -154,134 +167,144 @@ main( int argc, char** argv )
   ofstream ofNoise;
 
 
+  if(args.check("-enteteXFIG")){
+    args.check("-setFileNameFigure")? ofFig : cout << "#FIG 3.2 \nLandscape \nCenter \nInches \nLetter  \n" <<agrandissementEPS<< "\nSingle \n1" 
+						   << " \n"<<RESOLUTION<<" 1" << endl;
 
-
-  if(args.check("-setSamplingSizeMax")){    
-    samplingSizeMax = args.getOption("-setSamplingSizeMax")->getIntValue(0);    
-  } 
-  
-  uint samplingSizeMaxEstim = estimMaxSamplingSize(fc);
-  
-  if(samplingSizeMaxEstim<samplingSizeMax)
-    samplingSizeMax= samplingSizeMaxEstim;
-
+    ofFig << "#FIG 3.2 \nLandscape \nCenter \nInches \nLetter  \n" <<agrandissementEPS<< "\nSingle \n1" 
+	  << " \n"<<RESOLUTION<<" 1" << endl;
+  }
   
   if(args.check("-setFileNameFigure")){
     string name = args.getOption("-setFileNameFigure")->getValue(0);
     ofFig.open(name.c_str(), ios_base::out);
   }
 
-
-  if(args.check("-enteteXFIG")){
-    args.check("-setFileNameFigure")? ofFig : cout << "#FIG 3.2 \nLandscape \nCenter \nInches \nLetter  \n" <<agrandissementEPS<< "\nSingle \n1" 
-	  << " \n"<<RESOLUTION<<" 1" << endl;
-
-    ofFig << "#FIG 3.2 \nLandscape \nCenter \nInches \nLetter  \n" <<agrandissementEPS<< "\nSingle \n1" 
-	 << " \n"<<RESOLUTION<<" 1" << endl;
-  }
-
-  if(args.check("-setFileNameNoiseLevel")){
-    string name = args.getOption("-setFileNameNoiseLevel")->getValue(0);
-    cerr << "name " << name <<endl;
-    ofNoise.open(name.c_str(), ios_base::out);
-  }
-
-  
-
-  
-  if(args.check("-drawContourSRC")){
-    uint color = args.getOption("-drawContourSRC")->getIntValue(0);
-    uint linewidth = args.getOption("-drawContourSRC")->getIntValue(1);
-    DrawingXFIG::setFillIntensity(100);
-    DrawingXFIG::drawContour(args.check("-setFileNameFigure")? ofFig :cout, fc, color, linewidth,0,0 , 2);
-    
-  }
-  
-
-
-
-
-
-  
-  //Computing the noise level for each pixel:    
-  
-  int nbIterationSpikes = 5;
-  
-
-  Clock::startClock();
-  
-  FreemanChainSubsample fcsub( 1, 1, 0, 0 );
-  FreemanChainCleanSpikesCCW fccs( nbIterationSpikes );
-  FreemanChainCompose fcomp( fccs, fcsub );
-  FreemanChainTransform* ptr_fct = &fcomp;
-  FreemanChainSubsample* ptr_fcsub = &fcsub;
-  
-  MultiscaleProfile MP;
-  MP.chooseSubsampler( *ptr_fct, *ptr_fcsub );
-  MP.init( fc, samplingSizeMax );
-  long time = Clock::stopClock();
-  Clock::startClock();
-  cerr<< "Multi-scale computed in :" << time << " ms" << endl;
-  cerr << "Contour size: " << fc.chain.size() << " surfels" << endl;
-  cerr << "Sampling size max used: " << samplingSizeMax << endl ;
-  
-  if(args.check("-printNoiseLevel")){
-    ((args.check("-setFileNameNoiseLevel"))? ofNoise :cout) << "# -printNoiseLevel: displays noise level for each surfel." 
-							    << endl
-							    << "# idx noiselvl code x y" << endl;  
-  }
-
-  
-  Statistics statBoxes (1, false);
-  
-  double h= args.getOption("-affBoxesStat")->getFloatValue(0);
-  
-
-  uint i =0;
-  for (FreemanChain::const_iterator it = fc.begin() ; it!=fc.end(); ++it){
-    Vector2i pt ((*it).x(), (*it).y());
-    
-    uint noiseLevel =0;
-    uint idx = it.getPosition();
-    uint code = it.getCode();
-    
-    Vector2i xy( *it );
-    noiseLevel =  MP.noiseLevel(i, mscales_min_size, mscales_max_slope);
+    long time = Clock::stopClock();
 
     
-    
-    if(args.check("-affBoxesStat")){
-      statBoxes.addValue(0, noiseLevel);
+  for(int j =0; j<vectFC.size(); j++){
+    if(args.check("-processAllContours")){
+      cerr << "Processing contour " << j << endl;    
     }
-    
-    
-    if(args.check("-drawXFIGNoiseLevel")){
-      DrawingXFIG::setFillIntensity(38);
-      if(noiseLevel==0){
-	DrawingXFIG::drawPixel (args.check("-setFileNameFigure")? ofFig :cout, pt, 2, 2, samplingSizeMax, 50);
-      }else{
-	DrawingXFIG::drawPixel (args.check("-setFileNameFigure")? ofFig :cout, pt, 1, 1, noiseLevel, 50);
-      }
-    }
-    if(args.check("-printNoiseLevel")){
-      (args.check("-setFileNameNoiseLevel")? ofNoise :cout) << idx << " " << noiseLevel << " " << code
-	   << " " << xy.x() << " " << xy.y() << endl;
+    FreemanChain fc = vectFC.at(j);
+  
+    if(args.check("-setSamplingSizeMax")){    
+      samplingSizeMax = args.getOption("-setSamplingSizeMax")->getIntValue(0);    
     } 
-    
-    i++;
-  }   
+  
+    uint samplingSizeMaxEstim = estimMaxSamplingSize(fc);
+  
+    if(samplingSizeMaxEstim<samplingSizeMax)
+      samplingSizeMax= samplingSizeMaxEstim;
 
-
-  statBoxes.terminate();
   
 
-  if(args.check("-affBoxesStat")){
-    cerr << "# Noise estimation stats: Mean:" << statBoxes.mean(0)*h << " variance: "<< statBoxes.variance(0)*h << " Min: " <<  statBoxes.min(0)*h << " Max: " <<  statBoxes.max(0) << endl ;
+
+    if(args.check("-setFileNameNoiseLevel")){
+      string name = args.getOption("-setFileNameNoiseLevel")->getValue(0);
+      cerr << "name " << name <<endl;
+      ofNoise.open(name.c_str(), ios_base::out);
+    }
+
+  
+
+  
+    if(args.check("-drawContourSRC")){
+      uint color = args.getOption("-drawContourSRC")->getIntValue(0);
+      uint linewidth = args.getOption("-drawContourSRC")->getIntValue(1);
+      DrawingXFIG::setFillIntensity(100);
+      DrawingXFIG::drawContour(args.check("-setFileNameFigure")? ofFig :cout, fc, color, linewidth,0,0 , 2);    
+    }
+  
+
+
+
+
+
+  
+    //Computing the noise level for each pixel:    
+  
+    int nbIterationSpikes = 5;
+  
+
+    Clock::startClock();
+  
+    FreemanChainSubsample fcsub( 1, 1, 0, 0 );
+    FreemanChainCleanSpikesCCW fccs( nbIterationSpikes );
+    FreemanChainCompose fcomp( fccs, fcsub );
+    FreemanChainTransform* ptr_fct = &fcomp;
+    FreemanChainSubsample* ptr_fcsub = &fcsub;
+  
+    MultiscaleProfile MP;
+    MP.chooseSubsampler( *ptr_fct, *ptr_fcsub );
+    MP.init( fc, samplingSizeMax );
+
+    Clock::startClock();
+    cerr<< "Multi-scale computed in :" << time << " ms" << endl;
+    cerr << "Contour size: " << fc.chain.size() << " surfels" << endl;
+    cerr << "Sampling size max used: " << samplingSizeMax << endl ;
+  
+    if(args.check("-printNoiseLevel")){
+      ((args.check("-setFileNameNoiseLevel"))? ofNoise :cout) << "# -printNoiseLevel: displays noise level for each surfel." 
+							      << endl
+							      << "# idx noiselvl code x y" << endl;  
+    }
+
+  
+    Statistics statBoxes (1, false);
+  
+    double h= args.getOption("-affBoxesStat")->getFloatValue(0);
+  
+
+    uint i =0;
+    for (FreemanChain::const_iterator it = fc.begin() ; it!=fc.end(); ++it){
+      Vector2i pt ((*it).x(), (*it).y());
     
+      uint noiseLevel =0;
+      uint idx = it.getPosition();
+      uint code = it.getCode();
+    
+      Vector2i xy( *it );
+      noiseLevel =  MP.noiseLevel(i, mscales_min_size, mscales_max_slope);
+
+    
+    
+      if(args.check("-affBoxesStat")){
+	statBoxes.addValue(0, noiseLevel);
+      }
+    
+    
+      if(args.check("-drawXFIGNoiseLevel")){
+	DrawingXFIG::setFillIntensity(38);
+	if(noiseLevel==0){
+	  DrawingXFIG::drawPixel (args.check("-setFileNameFigure")? ofFig :cout, pt, 2, 2, samplingSizeMax, 50);
+	}else{
+	  DrawingXFIG::drawPixel (args.check("-setFileNameFigure")? ofFig :cout, pt, 1, 1, noiseLevel, 50);
+	}
+      }
+      if(args.check("-printNoiseLevel")){
+	(args.check("-setFileNameNoiseLevel")? ofNoise :cout) << idx << " " << noiseLevel << " " << code
+							      << " " << xy.x() << " " << xy.y() << endl;
+      } 
+    
+      i++;
+    }   
+
+
+    statBoxes.terminate();
+  
+
+    if(args.check("-affBoxesStat")){
+      cerr << "# Noise estimation stats: Mean:" << statBoxes.mean(0)*h << " variance: "<< statBoxes.variance(0)*h << " Min: " <<  statBoxes.min(0)*h << " Max: " <<  statBoxes.max(0) << endl ;
+    
+    }
+  
+      if(args.check("-estimSamplingSizeMax")){
+    cerr << "Possible sampling size max: " << estimMaxSamplingSize(fc) << endl;    
   }
-  
-  
-  
+
+  }
   
   if(args.check("-afficheImage")){    
     string nomImage = args.getOption( "-afficheImage" )->getValue( 0 );
@@ -300,11 +323,6 @@ main( int argc, char** argv )
 
 
 
-  if(args.check("-estimSamplingSizeMax")){
-    cerr << "Possible sampling size max: " << estimMaxSamplingSize(fc) << endl;    
-    
-
-  }
 
 
 
