@@ -166,6 +166,10 @@ main( int argc, char** argv )
   ofstream ofFig;
   ofstream ofNoise;
 
+  if(args.check("-setFileNameFigure")){
+    string name = args.getOption("-setFileNameFigure")->getValue(0);
+    ofFig.open(name.c_str(), ios_base::out);
+  }
 
   if(args.check("-enteteXFIG")){
     args.check("-setFileNameFigure")? ofFig : cout << "#FIG 3.2 \nLandscape \nCenter \nInches \nLetter  \n" <<agrandissementEPS<< "\nSingle \n1" 
@@ -174,20 +178,34 @@ main( int argc, char** argv )
     ofFig << "#FIG 3.2 \nLandscape \nCenter \nInches \nLetter  \n" <<agrandissementEPS<< "\nSingle \n1" 
 	  << " \n"<<RESOLUTION<<" 1" << endl;
   }
-  
-  if(args.check("-setFileNameFigure")){
-    string name = args.getOption("-setFileNameFigure")->getValue(0);
-    ofFig.open(name.c_str(), ios_base::out);
+  if(args.check("-afficheImage")){    
+    string nomImage = args.getOption( "-afficheImage" )->getValue( 0 );
+    int largeur = args.getOption( "-afficheImage" )->getIntValue( 1 );
+    int hauteur = args.getOption( "-afficheImage" )->getIntValue( 2 );
+    if(args.check("-setPosImage")){
+      int posX = args.getOption("-setPosImage")->getIntValue(0);
+      int posY = args.getOption("-setPosImage")->getIntValue(1);
+      DrawingXFIG::drawImage(args.check("-setFileNameFigure")? ofFig :cout, nomImage, posX, posY, largeur, hauteur, 100);
+      
+    }else{
+      DrawingXFIG::drawImage(args.check("-setFileNameFigure")? ofFig :cout, nomImage, 0, 0, largeur, hauteur, 100);
+    }        
   }
+  
 
-    long time = Clock::stopClock();
+  long time = Clock::stopClock();
 
-    
-  for(int j =0; j<vectFC.size(); j++){
+  Clock::startClock();
+
+
+
+
+  for(int k =0; k<vectFC.size(); k++){
+    samplingSizeMax=20;
     if(args.check("-processAllContours")){
-      cerr << "Processing contour " << j << endl;    
+      cerr << "Processing contour " << k << endl;    
     }
-    FreemanChain fc = vectFC.at(j);
+    FreemanChain fc = vectFC.at(k);
   
     if(args.check("-setSamplingSizeMax")){    
       samplingSizeMax = args.getOption("-setSamplingSizeMax")->getIntValue(0);    
@@ -199,7 +217,6 @@ main( int argc, char** argv )
       samplingSizeMax= samplingSizeMaxEstim;
 
   
-
 
     if(args.check("-setFileNameNoiseLevel")){
       string name = args.getOption("-setFileNameNoiseLevel")->getValue(0);
@@ -220,15 +237,11 @@ main( int argc, char** argv )
 
 
 
-
-
-  
     //Computing the noise level for each pixel:    
   
     int nbIterationSpikes = 5;
   
 
-    Clock::startClock();
   
     FreemanChainSubsample fcsub( 1, 1, 0, 0 );
     FreemanChainCleanSpikesCCW fccs( nbIterationSpikes );
@@ -300,25 +313,12 @@ main( int argc, char** argv )
     
     }
   
-      if(args.check("-estimSamplingSizeMax")){
-    cerr << "Possible sampling size max: " << estimMaxSamplingSize(fc) << endl;    
-  }
+    if(args.check("-estimSamplingSizeMax")){
+      cerr << "Possible sampling size max: " << estimMaxSamplingSize(fc) << endl;    
+    }
 
   }
   
-  if(args.check("-afficheImage")){    
-    string nomImage = args.getOption( "-afficheImage" )->getValue( 0 );
-    int largeur = args.getOption( "-afficheImage" )->getIntValue( 1 );
-    int hauteur = args.getOption( "-afficheImage" )->getIntValue( 2 );
-    if(args.check("-setPosImage")){
-      int posX = args.getOption("-setPosImage")->getIntValue(0);
-      int posY = args.getOption("-setPosImage")->getIntValue(1);
-      DrawingXFIG::drawImage(args.check("-setFileNameFigure")? ofFig :cout, nomImage, posX, posY, largeur, hauteur, 100);
-      
-    }else{
-      DrawingXFIG::drawImage(args.check("-setFileNameFigure")? ofFig :cout, nomImage, 0, 0, largeur, hauteur, 100);
-    }        
-  }
   
 
 
