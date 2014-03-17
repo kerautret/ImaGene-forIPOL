@@ -63,6 +63,9 @@ importWithHistoFromPGM
   uint yMaxObj=sizes[1];
 
   imageSize = sizes[0]*sizes[1];
+  uint sizeInit0 = sizes[0]; 
+  uint sizeInit1 = sizes[1]; 
+
   sizes[0]+=2*bordXY;
   sizes[1]+=2*bordXY;
     
@@ -70,7 +73,7 @@ importWithHistoFromPGM
   istringstream str2_in( str );
   int max_value;
   str2_in >> max_value;
-  inImage << sizes[0] << " " << sizes[1] << endl << max_value << endl;
+  inImage << sizeInit0 << " " << sizeInit1 << endl << max_value << endl;
 
 
   std::vector<unsigned int> histo(max_value+1, 0);
@@ -208,7 +211,7 @@ main( int argc, char** argv )
 	return 2;
       }
     fs.close();
-    fs.open ("tmp.pgm", std::ofstream::in);
+    fs.open ("tmpPgm2Freeman.pgm", std::ofstream::in);
     if ( ! ShapeHelper::importFromPGM( fs, ks, voxset, threshold, 1 , true) )
       {
 	cerr << "Error reading PGM file." << endl;
