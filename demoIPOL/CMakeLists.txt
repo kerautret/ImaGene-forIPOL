@@ -2,7 +2,8 @@
 include_directories (${ImaGene_SOURCE_DIR}/include)
 
 set( DEMO_EXEC_FILES 
-     meaningfulScaleEstim )	
+     meaningfulScaleEstim 
+     minimalCodeNoiseDetection)	
 
 
 set( DEMO_EXEC_FILES_EXT )
