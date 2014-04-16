@@ -30,6 +30,7 @@
 #include <iostream>
 #include <vector>
 #include <utility>
+#include "ImaGene/mathutils/Statistics.h"
 #include "ImaGene/dgeometry2d/MultiscaleFreemanChain.h"
 #include "ImaGene/base/Vector.h"
 //////////////////////////////////////////////////////////////////////////////
