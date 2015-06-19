@@ -100,6 +100,7 @@ main( int argc, char** argv )
   args.addOption("-extractScaleProfile", "extractScaleProfile <index> <file> extract Scale Profile of index point p ", "0", "profile.dat");
 
   args.addOption("-displaySmoothContour", "-displaySmoothContour <color> display the smoothed contour with the noise constraints", "0" );
+  args.addOption("-exportNoiseLevel", "-exportNoiseLevel <filename> export noise level", "noise.dat" );
 
 
 
@@ -136,6 +137,13 @@ main( int argc, char** argv )
   
   // -------------------------------------------------------------------------
   // Read Freeman chain and creates space/contour.  
+
+  bool exportNoise = args.check("-exportNoiseLevel");
+  string nameExport = args.getOption("-exportNoiseLevel")->getValue(0);
+  ofstream outNoiseLevel;
+  if(exportNoise){
+    outNoiseLevel.open( nameExport.c_str() , ofstream::out );
+  }
 
   if(args.check("-srcFC")){
     FreemanChain fc; 
@@ -363,7 +371,11 @@ main( int argc, char** argv )
     cerr << "Mean noise=" << maxNoiseValue << endl; 
   }
   
-  
+  if(exportNoise){
+    outNoiseLevel << "# Noise levels exported from displayNoiseBS (source ImaGene): " << std::endl;
+    outNoiseLevel << "# Format X Y noiseLevel " << std::endl;
+  }
+     
   
   for(int i=0; i< contour.size(); i++){
      Vector2D ptA = contour.at(i);
@@ -387,6 +399,9 @@ main( int argc, char** argv )
      double noiseLevelA= (vectScales.at(noiseAindex-1)/2.0);
      double noiseLevelB= (vectScales.at(noiseBindex-1)/2.0);
 
+     if(exportNoise){
+       outNoiseLevel << ptA.x() << " " << ptA.y() << " "<<  noiseLevelA << std::endl;
+     }
    
      if(args.check("-drawNoiseLevelBoxes")){
        //uint color = args.getOption("-drawNoiseLevelBoxes")->getIntValue(0);
@@ -443,6 +458,10 @@ main( int argc, char** argv )
 
      
   }
+  if(exportNoise){
+    outNoiseLevel.close();
+  }
+       
   
   if(args.check("-displaySmoothContour")){
       Clock::startClock();
