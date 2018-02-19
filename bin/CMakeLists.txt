@@ -2,7 +2,8 @@
 include_directories (${ImaGene_SOURCE_DIR}/include)
 
 set( BIN_EXEC_FILES 
-     	addGaussianNoisePGM
+        addnoisepgm
+        addGaussianNoisePGM
      	addGaussianNoisePGM3d
 	christoffel
 	curvature_cc 
